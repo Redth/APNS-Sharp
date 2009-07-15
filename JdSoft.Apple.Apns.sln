@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Notifications", "JdSoft.Apple.Apns.Notifications\JdSoft.Apple.Apns.Notifications.csproj", "{4CFB9AA8-55F8-46DC-B7BD-9E18B9939110}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Feedback", "JdSoft.Apple.Apns.Feedback\JdSoft.Apple.Apns.Feedback.csproj", "{B87C2903-2B6B-49FF-B735-630A5CB69521}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.AppStore", "JdSoft.Apple.AppStore\JdSoft.Apple.AppStore.csproj", "{0B43E620-8E6F-4F13-B40E-89CA30C436D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Feedback.Test", "JdSoft.Apple.Apns.Feedback.Test\JdSoft.Apple.Apns.Feedback.Test.csproj", "{46CAEA10-404B-4E0A-B1A0-C1B128B55A8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.AppStore.Test", "JdSoft.Apple.AppStore.Test\JdSoft.Apple.AppStore.Test.csproj", "{730A216F-B055-4C44-A095-65A098945A2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Notifications.Test", "JdSoft.Apple.Apns.Notifications.Test\JdSoft.Apple.Apns.Notifications.Test.csproj", "{3500A7AA-A8C8-4221-8265-48B02ECF2463}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4CFB9AA8-55F8-46DC-B7BD-9E18B9939110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CFB9AA8-55F8-46DC-B7BD-9E18B9939110}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CFB9AA8-55F8-46DC-B7BD-9E18B9939110}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CFB9AA8-55F8-46DC-B7BD-9E18B9939110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B87C2903-2B6B-49FF-B735-630A5CB69521}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B87C2903-2B6B-49FF-B735-630A5CB69521}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B87C2903-2B6B-49FF-B735-630A5CB69521}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B87C2903-2B6B-49FF-B735-630A5CB69521}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B43E620-8E6F-4F13-B40E-89CA30C436D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B43E620-8E6F-4F13-B40E-89CA30C436D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B43E620-8E6F-4F13-B40E-89CA30C436D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B43E620-8E6F-4F13-B40E-89CA30C436D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46CAEA10-404B-4E0A-B1A0-C1B128B55A8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46CAEA10-404B-4E0A-B1A0-C1B128B55A8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46CAEA10-404B-4E0A-B1A0-C1B128B55A8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46CAEA10-404B-4E0A-B1A0-C1B128B55A8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{730A216F-B055-4C44-A095-65A098945A2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{730A216F-B055-4C44-A095-65A098945A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{730A216F-B055-4C44-A095-65A098945A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{730A216F-B055-4C44-A095-65A098945A2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3500A7AA-A8C8-4221-8265-48B02ECF2463}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3500A7AA-A8C8-4221-8265-48B02ECF2463}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3500A7AA-A8C8-4221-8265-48B02ECF2463}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3500A7AA-A8C8-4221-8265-48B02ECF2463}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
