@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -71,6 +71,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		#region Instance Variables
 		private bool disposing;
 		private bool closing;
+		private bool accepting;
 
 		private Encoding encoding;
 		private LockFreeQueue<Notification> notifications;
@@ -194,7 +195,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <returns>If true, the notification was queued successfully, otherwise it was not and will not be sent</returns>
 		public bool QueueNotification(Notification notification)
 		{
-			if (!disposing && !closing)
+			if (!disposing && !closing && accepting)
 			{
 				notifications.Enqueue(notification);
 				return true;
@@ -208,6 +209,17 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		public void Close()
 		{
+			accepting = false;
+			
+			//Sleep here to prevent a race condition
+			// in which a notification could be queued while the worker thread
+			// is sleeping after its loop, but if we set closing true within that 100 ms,
+			// the queued notifications during that time would not get dequeued as the loop
+			// would exit due to closing = true;
+			// 250 ms should be ample time for the loop to dequeue any remaining notifications
+			// after we stopped accepting above
+			Thread.Sleep(250);
+			
 			closing = true;
 
 			//Wait for buffer to be flushed out
@@ -220,6 +232,12 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		public void Dispose()
 		{
+			
+			accepting = false;
+			
+			//We don't really care about the race condition here
+			// since disposing does NOT wait for all notifications to be sent
+			
 			disposing = true;
 
 			//Wait for the worker to finish cleanly
@@ -247,6 +265,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		#region Private Methods
 		private void start(string p12File, string p12FilePassword)
 		{
+			accepting = true;
 			disposing = false;
 			closing = false;
 
