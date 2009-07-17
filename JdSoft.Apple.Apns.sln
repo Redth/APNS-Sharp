@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.AppStore.Test"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Notifications.Test", "JdSoft.Apple.Apns.Notifications.Test\JdSoft.Apple.Apns.Notifications.Test.csproj", "{3500A7AA-A8C8-4221-8265-48B02ECF2463}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Notifications.JsonTest", "JdSoft.Apple.Apns.Notifications.JsonTest\JdSoft.Apple.Apns.Notifications.JsonTest.csproj", "{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,8 +45,16 @@ Global
 		{3500A7AA-A8C8-4221-8265-48B02ECF2463}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3500A7AA-A8C8-4221-8265-48B02ECF2463}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3500A7AA-A8C8-4221-8265-48B02ECF2463}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = JdSoft.Apple.Apns.Notifications\JdSoft.Apple.Apns.Notifications.csproj
+		version = 0.1
 	EndGlobalSection
 EndGlobal

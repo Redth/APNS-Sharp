@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -92,23 +92,16 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		private bool BuildPayload(ref StringBuilder payload)
 		{
-			bool valid = false;
 
-			payload.Append("{\"aps\":{");
+			payload.Append("{\"aps\":{");;
 
 
 			if (Badge.HasValue && Badge.Value >= 0)
-			{
 				payload.Append(string.Format("\"badge\":{0},", Badge));
-				valid = true;
-			}
 
 			if (!string.IsNullOrEmpty(Sound))
-			{
 				payload.Append(string.Format("\"sound\":\"{0}\",", Sound));
-				valid = true;
-			}
-
+				
 			if (!Alert.IsEmpty)
 			{
 				//payload.Append(string.Format("\"alert\":\"{0}\",", Alert.ToString()));
@@ -151,9 +144,13 @@ namespace JdSoft.Apple.Apns.Notifications
 				}
 
 				payload.Append(",");
-				valid = true;
 			}
 
+			if (payload.Length > 8)
+				payload.Remove(payload.Length - 1, 1);
+
+			payload.Append("},");
+			
 			//Now generate json for the custom attributes
 			foreach (string customKey in Custom.Keys)
 			{
@@ -180,9 +177,9 @@ namespace JdSoft.Apple.Apns.Notifications
 					else
 					{
 						if (Custom[customKey][0] is int || Custom[customKey][0] is long || Custom[customKey][0] is short)
-							payload.Append(string.Format("{0},", Custom[customKey][0]));
+							payload.Append(string.Format("{0}", Custom[customKey][0]));
 						else
-							payload.Append(string.Format("\"{0}\",", Custom[customKey][0]));
+							payload.Append(string.Format("\"{0}\"", Custom[customKey][0]));
 					}
 
 					payload.Append(",");
@@ -193,9 +190,9 @@ namespace JdSoft.Apple.Apns.Notifications
 			if (payload.Length > 1)
 				payload.Remove(payload.Length - 1, 1);
 
-			payload.Append("}}");
-
-			return valid;
+			payload.Append("}");
+			
+			return true;
 		}
 
 		/// <summary>
