@@ -103,6 +103,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		private List<NotificationConnection> notificationConnections = new List<NotificationConnection>();
 		private Random rand = new Random((int)DateTime.Now.Ticks);
 		private int sequential = 0;
+		private int sendRetries = 1;
 
 		private bool closing = false;
 		private bool disposing = false;
@@ -118,7 +119,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(string host, int port, string p12File, int connections)
 		{
-			this.SendRetries = 3;
+			this.SendRetries = 1;
 			closing = false;
 			disposing = false;
 			Host = host;
@@ -139,7 +140,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(string host, int port, string p12File, string p12FilePassword, int connections)
 		{
-			this.SendRetries = 3;
+			this.SendRetries = 1;
 			closing = false;
 			disposing = false;
 			Host = host;
@@ -158,7 +159,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(bool sandbox, string p12File, int connections)
 		{
-			this.SendRetries = 3;
+			this.SendRetries = 1;
 			closing = false;
 			disposing = false;
 			Host = sandbox ? hostSandbox : hostProduction;
@@ -178,7 +179,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(bool sandbox, string p12File, string p12FilePassword, int connections)
 		{
-			this.SendRetries = 3;
+			this.SendRetries = 1;
 			closing = false;
 			disposing = false;
 			Host = sandbox ? hostSandbox : hostProduction;
@@ -214,8 +215,14 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		public int SendRetries
 		{
-			get;
-			set;
+			get { return sendRetries; }
+			set
+			{
+				sendRetries = value;
+
+				foreach (NotificationConnection con in notificationConnections)
+					con.SendRetries = sendRetries;
+			}
 		}
 
 		/// <summary>

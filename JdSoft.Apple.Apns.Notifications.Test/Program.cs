@@ -41,7 +41,7 @@ namespace JdSoft.Apple.Apns.Test
 
 			string p12Filename = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, p12File);
 			
-			NotificationService service = new NotificationService(sandbox, p12File, p12FilePassword, 1);
+			NotificationService service = new NotificationService(sandbox, p12Filename, p12FilePassword, 1);
 
 			service.SendRetries = 5; //5 retries before generating notificationfailed event
 			service.ReconnectDelay = 5000; //5 seconds

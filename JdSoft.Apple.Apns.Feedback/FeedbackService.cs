@@ -68,6 +68,8 @@ namespace JdSoft.Apple.Apns.Feedback
 			Host = host;
 			Port = port;
 			P12File = p12File;
+			ConnectAttempts = 3;
+			ReconnectDelay = 10000;
 		}
 
 		/// <summary>
@@ -84,6 +86,8 @@ namespace JdSoft.Apple.Apns.Feedback
 			Port = port;
 			P12File = p12File;
 			P12FilePassword = p12FilePassword;
+			ConnectAttempts = 3;
+			ReconnectDelay = 10000;
 		}
 
 		/// <summary>
@@ -97,6 +101,7 @@ namespace JdSoft.Apple.Apns.Feedback
 			Host = sandbox ? hostSandbox : hostProduction;
 			Port = 2196;
 			P12File = p12File;
+			ConnectAttempts = 3;
 		}
 
 		/// <summary>
@@ -112,6 +117,8 @@ namespace JdSoft.Apple.Apns.Feedback
 			Port = 2196;
 			P12File = p12File;
 			P12FilePassword = p12FilePassword;
+			ConnectAttempts = 3;
+			ReconnectDelay = 10000;
 		}
 		#endregion
 
@@ -245,6 +252,24 @@ namespace JdSoft.Apple.Apns.Feedback
 			get;
 			private set;
 		}
+
+		/// <summary>
+		/// How many times to try connecting before giving up
+		/// </summary>
+		public int ConnectAttempts
+		{
+			get;
+			set;
+		}
+
+		/// <summary>
+		/// Number of milliseconds to wait between connection attempts
+		/// </summary>
+		public int ReconnectDelay
+		{
+			get;
+			set;
+		}
 		#endregion
 
 		#region Private Methods
@@ -258,8 +283,12 @@ namespace JdSoft.Apple.Apns.Feedback
 			if (apnsClient == null || !apnsClient.Connected)
 				connected = false;
 
-			while (!connected && !disposing)
+			int tries = 0;
+			
+			while (!connected && !disposing && tries < ConnectAttempts)
 			{
+				tries++;
+
 				try
 				{
 					apnsClient = new TcpClient(Host, Port);
@@ -284,17 +313,17 @@ namespace JdSoft.Apple.Apns.Feedback
 
 				}
 
-				//if (!connected)
-				//{
-				//    int wait = ReconnectDelay;
-				//    int waited = 0;
+				if (!connected)
+				{
+				    int wait = ReconnectDelay;
+				    int waited = 0;
 
-				//    while (waited < wait && !disposing)
-				//    {
-				//        System.Threading.Thread.Sleep(250);
-				//        waited += 250;
-				//    }
-				//}
+				    while (waited < wait && !disposing)
+				    {
+				        System.Threading.Thread.Sleep(250);
+				        waited += 250;
+				    }
+				}
 
 			}
 
