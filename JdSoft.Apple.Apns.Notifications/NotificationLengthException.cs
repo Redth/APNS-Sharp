@@ -12,7 +12,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		/// <param name="notification">Notification that caused the Exception</param>
 		public NotificationLengthException(Notification notification)
-			: base("Notification Payload Exceeds 256 bytes")
+			: base(string.Format("Notification Payload Length ({0}) Exceeds the maximum length of {1} characters", notification.Payload.ToJson().Length, Notification.MAX_PAYLOAD_SIZE))
 		{
 			this.Notification = notification;
 		}

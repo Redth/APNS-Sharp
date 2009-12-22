@@ -36,6 +36,17 @@ namespace JdSoft.Apple.Apns.Notifications
 		public event OnNotificationTooLong NotificationTooLong;
 
 		/// <summary>
+		/// Handles Bad Device Token Exceptions when the device token provided is not the right length
+		/// </summary>
+		/// <param name="sender">NotificatioConnection Instance that generated the Exception</param>
+		/// <param name="ex">BadDeviceTokenException Instance</param>
+		public delegate void OnBadDeviceToken(object sender, BadDeviceTokenException ex);
+		/// <summary>
+		/// Occurs when a Device Token that's specified is not the right length
+		/// </summary>
+		public event OnBadDeviceToken BadDeviceToken;
+
+		/// <summary>
 		/// Handles Successful Notification Send Events
 		/// </summary>
 		/// <param name="sender">NotificationConnection Instance</param>
@@ -56,6 +67,36 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// Occurs when a Notification has failed to send to Apple's Servers.  This is event is raised after the NotificationConnection has attempted to resend the notification the number of SendRetries specified.
 		/// </summary>
 		public event OnNotificationFailed NotificationFailed;
+
+		/// <summary>
+		/// Handles Connecting Event
+		/// </summary>
+		/// <param name="sender">NotificationConnection Instance</param>
+		public delegate void OnConnecting(object sender);
+		/// <summary>
+		/// Occurs when Connecting to Apple's servers
+		/// </summary>
+		public event OnConnecting Connecting;
+
+		/// <summary>
+		/// Handles Connected Event
+		/// </summary>
+		/// <param name="sender">NotificationConnection Instance</param>
+		public delegate void OnConnected(object sender);
+		/// <summary>
+		/// Occurs when successfully connected and authenticated via SSL to Apple's Servers
+		/// </summary>
+		public event OnConnected Connected;
+
+		/// <summary>
+		/// Handles Disconnected Event
+		/// </summary>
+		/// <param name="sender">NotificationConnection Instance</param>
+		public delegate void OnDisconnected(object sender);
+		/// <summary>
+		/// Occurs when the connection to Apple's Servers has been lost
+		/// </summary>
+		public event OnDisconnected Disconnected;
 		#endregion
 
 		#region Instance Variables
@@ -77,6 +118,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(string host, int port, string p12File, int connections)
 		{
+			this.SendRetries = 3;
 			closing = false;
 			disposing = false;
 			Host = host;
@@ -85,8 +127,6 @@ namespace JdSoft.Apple.Apns.Notifications
 			P12FilePassword = null;
 			DistributionType = NotificationServiceDistributionType.Sequential;
 			Connections = connections;
-
-			start();
 		}
 
 		/// <summary>
@@ -99,6 +139,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(string host, int port, string p12File, string p12FilePassword, int connections)
 		{
+			this.SendRetries = 3;
 			closing = false;
 			disposing = false;
 			Host = host;
@@ -107,8 +148,6 @@ namespace JdSoft.Apple.Apns.Notifications
 			P12FilePassword = p12FilePassword;
 			DistributionType = NotificationServiceDistributionType.Sequential;
 			Connections = connections;
-
-			start();
 		}
 
 		/// <summary>
@@ -119,6 +158,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(bool sandbox, string p12File, int connections)
 		{
+			this.SendRetries = 3;
 			closing = false;
 			disposing = false;
 			Host = sandbox ? hostSandbox : hostProduction;
@@ -127,8 +167,6 @@ namespace JdSoft.Apple.Apns.Notifications
 			P12FilePassword = null;
 			DistributionType = NotificationServiceDistributionType.Sequential;
 			Connections = connections;
-
-			start();
 		}
 
 		/// <summary>
@@ -140,6 +178,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(bool sandbox, string p12File, string p12FilePassword, int connections)
 		{
+			this.SendRetries = 3;
 			closing = false;
 			disposing = false;
 			Host = sandbox ? hostSandbox : hostProduction;
@@ -148,8 +187,6 @@ namespace JdSoft.Apple.Apns.Notifications
 			P12FilePassword = p12FilePassword;
 			DistributionType = NotificationServiceDistributionType.Sequential;
 			Connections = connections;
-
-			start();
 		}
 		#endregion
 
@@ -250,6 +287,10 @@ namespace JdSoft.Apple.Apns.Notifications
 						newCon.NotificationFailed += new NotificationConnection.OnNotificationFailed(newCon_NotificationFailed);
 						newCon.NotificationTooLong += new NotificationConnection.OnNotificationTooLong(newCon_NotificationTooLong);
 						newCon.NotificationSuccess += new NotificationConnection.OnNotificationSuccess(newCon_NotificationSuccess);
+						newCon.Connecting += new NotificationConnection.OnConnecting(newCon_Connecting);
+						newCon.Connected += new NotificationConnection.OnConnected(newCon_Connected);
+						newCon.Disconnected += new NotificationConnection.OnDisconnected(newCon_Disconnected);
+						newCon.BadDeviceToken += new NotificationConnection.OnBadDeviceToken(newCon_BadDeviceToken);
 						notificationConnections.Add(newCon);
 					}
 
@@ -338,6 +379,12 @@ namespace JdSoft.Apple.Apns.Notifications
 				this.NotificationTooLong(sender, ex);
 		}
 
+		void newCon_BadDeviceToken(object sender, BadDeviceTokenException ex)
+		{
+			if (this.BadDeviceToken != null)
+				this.BadDeviceToken(this, ex);
+		}
+
 		void newCon_NotificationFailed(object sender, Notification failed)
 		{
 			if (this.NotificationFailed != null)
@@ -350,9 +397,22 @@ namespace JdSoft.Apple.Apns.Notifications
 				this.Error(sender, ex);
 		}
 
-		private void start()
+		void newCon_Disconnected(object sender)
 		{
+			if (this.Disconnected != null)
+				this.Disconnected(sender);
+		}
 
+		void newCon_Connected(object sender)
+		{
+			if (this.Connected != null)
+				this.Connected(sender);
+		}
+
+		void newCon_Connecting(object sender)
+		{
+			if (this.Connecting != null)
+				this.Connecting(sender);
 		}
 
 		private bool queueSequential(Notification notification)

@@ -26,7 +26,7 @@ namespace JdSoft.Apple.Apns.Test
 
 			//This is the password that you protected your p12File 
 			//  If you did not use a password, set it as null or an empty string
-			string p12FilePassword = "thepassword";
+			string p12FilePassword = "yourpassword";
 
 			//Number of notifications to send
 			int count = 3;
@@ -42,32 +42,35 @@ namespace JdSoft.Apple.Apns.Test
 			string p12Filename = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, p12File);
 			
 			NotificationService service = new NotificationService(sandbox, p12File, p12FilePassword, 1);
-						
+
 			service.SendRetries = 5; //5 retries before generating notificationfailed event
 			service.ReconnectDelay = 5000; //5 seconds
 
 			service.Error += new NotificationService.OnError(service_Error);
 			service.NotificationTooLong += new NotificationService.OnNotificationTooLong(service_NotificationTooLong);
+
+			service.BadDeviceToken += new NotificationService.OnBadDeviceToken(service_BadDeviceToken);
 			service.NotificationFailed += new NotificationService.OnNotificationFailed(service_NotificationFailed);
 			service.NotificationSuccess += new NotificationService.OnNotificationSuccess(service_NotificationSuccess);
-
+			service.Connecting += new NotificationService.OnConnecting(service_Connecting);
+			service.Connected += new NotificationService.OnConnected(service_Connected);
+			service.Disconnected += new NotificationService.OnDisconnected(service_Disconnected);
+			
 			//The notifications will be sent like this:
 			//		Testing: 1...
 			//		Testing: 2...
-			//		Testing: 3!
+			//		Testing: 3...
 			// etc...
 			for (int i = 1; i <= count; i++)
 			{
 				//Create a new notification to send
 				Notification alertNotification = new Notification();
-				alertNotification.DeviceToken = testDeviceToken;
-
-				//We only set the body so this is a 'simple' alert notification type
-				alertNotification.Alert.Body =  string.Format("Testing: {0}{1}", i, i != count ? "..." : "!");
 				
-				//We set a badge number here, or could just as easily not set it.
-				alertNotification.Badge = i;				
-
+				alertNotification.DeviceToken = testDeviceToken;				
+				alertNotification.Payload.Alert.Body = string.Format("Testing {0}...", i);
+				alertNotification.Payload.Sound = "default";
+				alertNotification.Payload.Badge = i;
+								
 				//Queue the notification to be sent
 				if (service.QueueNotification(alertNotification))
 					Console.WriteLine("Notification Queued!");
@@ -94,6 +97,26 @@ namespace JdSoft.Apple.Apns.Test
 			Console.WriteLine("Done!");
 			Console.WriteLine("Press enter to exit...");
 			Console.ReadLine();
+		}
+
+		static void service_BadDeviceToken(object sender, BadDeviceTokenException ex)
+		{
+			Console.WriteLine("Bad Device Token: {0}", ex.Message);
+		}
+
+		static void service_Disconnected(object sender)
+		{
+			Console.WriteLine("Disconnected...");
+		}
+
+		static void service_Connected(object sender)
+		{
+			Console.WriteLine("Connected...");
+		}
+
+		static void service_Connecting(object sender)
+		{
+			Console.WriteLine("Connecting...");
 		}
 
 		static void service_NotificationTooLong(object sender, NotificationLengthException ex)

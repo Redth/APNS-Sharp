@@ -8,7 +8,6 @@ using System.Net.Sockets;
 using System.Net.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using JdSoft.Apple.Apns.Notifications.Collections;
 
 namespace JdSoft.Apple.Apns.Notifications
 {
@@ -46,6 +45,17 @@ namespace JdSoft.Apple.Apns.Notifications
 		public event OnNotificationTooLong NotificationTooLong;
 
 		/// <summary>
+		/// Handles Bad Device Token Exceptions when the device token provided is not the right length
+		/// </summary>
+		/// <param name="sender">NotificatioConnection Instance that generated the Exception</param>
+		/// <param name="ex">BadDeviceTokenException Instance</param>
+		public delegate void OnBadDeviceToken(object sender, BadDeviceTokenException ex);
+		/// <summary>
+		/// Occurs when a Device Token that's specified is not the right length
+		/// </summary>
+		public event OnBadDeviceToken BadDeviceToken;
+
+		/// <summary>
 		/// Handles Successful Notification Send Events
 		/// </summary>
 		/// <param name="sender">NotificationConnection Instance</param>
@@ -66,15 +76,47 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// Occurs when a Notification has failed to send to Apple's Servers.  This is event is raised after the NotificationConnection has attempted to resend the notification the number of SendRetries specified.
 		/// </summary>
 		public event OnNotificationFailed NotificationFailed;
+
+		/// <summary>
+		/// Handles Connecting Event
+		/// </summary>
+		/// <param name="sender">NotificationConnection Instance</param>
+		public delegate void OnConnecting(object sender);
+		/// <summary>
+		/// Occurs when Connecting to Apple's servers
+		/// </summary>
+		public event OnConnecting Connecting;
+
+		/// <summary>
+		/// Handles Connected Event
+		/// </summary>
+		/// <param name="sender">NotificationConnection Instance</param>
+		public delegate void OnConnected(object sender);
+		/// <summary>
+		/// Occurs when successfully connected and authenticated via SSL to Apple's Servers
+		/// </summary>
+		public event OnConnected Connected;
+
+		/// <summary>
+		/// Handles Disconnected Event
+		/// </summary>
+		/// <param name="sender">NotificationConnection Instance</param>
+		public delegate void OnDisconnected(object sender);
+		/// <summary>
+		/// Occurs when the connection to Apple's Servers has been lost
+		/// </summary>
+		public event OnDisconnected Disconnected;
 		#endregion
 
 		#region Instance Variables
 		private bool disposing;
 		private bool closing;
 		private bool accepting;
+		private bool connected;
+		private bool firstConnect;
 
 		private Encoding encoding;
-		private LockFreeQueue<Notification> notifications;
+		private ThreadSafeQueue<Notification> notifications;
 		private Thread workerThread;
 		private X509Certificate certificate;
 		private X509CertificateCollection certificates;
@@ -91,6 +133,9 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		public NotificationConnection(string host, int port, string p12File)
 		{
+			connected = false;
+			firstConnect = true;
+
 			Host = host;
 			Port = port;
 
@@ -106,6 +151,9 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12FilePassword">Password protecting the p12File</param>
 		public NotificationConnection(string host, int port, string p12File, string p12FilePassword)
 		{
+			connected = false;
+			firstConnect = true;
+
 			Host = host;
 			Port = port;
 			
@@ -133,6 +181,9 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12FilePassword">Password protecting the p12File</param>
 		public NotificationConnection(bool sandbox, string p12File, string p12FilePassword)
 		{
+			connected = false;
+			firstConnect = true;
+
 			Host = sandbox ? hostSandbox : hostProduction;
 			Port = 2195;
 
@@ -270,10 +321,10 @@ namespace JdSoft.Apple.Apns.Notifications
 			closing = false;
 
 			encoding = Encoding.ASCII;
-			notifications = new LockFreeQueue<Notification>();
+			notifications = new ThreadSafeQueue<Notification>();
 			Id = System.Guid.NewGuid().ToString("N");
-			ReconnectDelay = 5000; //5 seconds
-			SendRetries = 5;
+			ReconnectDelay = 3000; //3 seconds
+			SendRetries = 3;
 
 			//Need to load the private key seperately from apple
 			if (string.IsNullOrEmpty(p12FilePassword))
@@ -290,121 +341,237 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		private void workerMethod()
 		{
-			byte[] buffer = new byte[293];
-
-			while (!this.disposing && !closing) //Keep going until disposing or closing
+			while (!disposing)
 			{
-				Notification notification = null;
-
-				//This we do while not disposing, but continue even if closing
-				// to flush out the buffer of messages to send
-				while (this.notifications.Dequeue(out notification) && !disposing)
+				try
 				{
-					int tries = 0;
-					bool sent = false;
-					bool alertFailed = true;
-
-					while (tries <= SendRetries && !sent)
+					while (this.notifications.Count > 0 && !disposing)
 					{
-						if (ensureConnected())
+						Notification notification = this.notifications.Dequeue();
+	
+						int tries = 0;
+						bool sent = false;
+
+						while (!sent && tries < this.SendRetries)
 						{
-							//Generate the notification into our buffer
-							try 
-							{ 
-								notification.Build(ref buffer); 
-							}
-							catch (NotificationLengthException nex)
-							{
-								tries = SendRetries + 1;
-								sent = false;
-								alertFailed = false; //Already putting an exception here
-
-								if (this.NotificationTooLong != null)
-									this.NotificationTooLong(this, nex);
-							}
-
 							try
 							{
-								//Send the notification
-								apnsStream.Write(buffer);
-								sent = true; //Can only assume it worked at this point
+								if (!disposing)
+								{
+									while (!connected)
+										Reconnect();
+
+									try
+									{
+										apnsStream.Write(notification.ToBytes());
+									}
+									catch (BadDeviceTokenException btex)
+									{
+										if (this.BadDeviceToken != null)
+											this.BadDeviceToken(this, btex);
+									}
+									catch (NotificationLengthException nlex)
+									{
+										if (this.NotificationTooLong != null)
+											this.NotificationTooLong(this, nlex);
+									}
+
+									string txtAlert = string.Empty;
+																		
+									if (this.NotificationSuccess != null)
+										this.NotificationSuccess(this, notification);
+
+									sent = true;
+								}
+								else
+								{
+									this.connected = false;
+								}
 							}
 							catch (Exception ex)
 							{
 								if (this.Error != null)
 									this.Error(this, ex);
+
+								this.connected = false;
 							}
+
+							tries++;
 						}
 
-						tries++;
+						//Didn't send in 3 tries
+						if (!sent && this.NotificationFailed != null)
+							this.NotificationFailed(this, notification);
 					}
-
-					//Trigger events
-					if (sent && this.NotificationSuccess != null)
-						this.NotificationSuccess(this, notification);
-					else if (!sent && this.NotificationFailed != null && alertFailed)
-						this.NotificationFailed(this, notification);
-				}
-
-				System.Threading.Thread.Sleep(100);
-			}
-		}
-
-
-		private bool ensureConnected()
-		{
-			bool connected = false;
-
-			if (apnsStream == null || !apnsStream.CanWrite)
-				connected = false;
-
-			if (apnsClient == null || !apnsClient.Connected)
-				connected = false;
-
-			while (!connected && !disposing)
-			{
-				try
-				{
-					apnsClient = new TcpClient(Host, Port);
-
-					apnsStream = new SslStream(apnsClient.GetStream(), true,
-						new RemoteCertificateValidationCallback(validateServerCertificate),
-						new LocalCertificateSelectionCallback(selectLocalCertificate));
-
-					apnsStream.AuthenticateAsClient(Host,
-						certificates,
-						System.Security.Authentication.SslProtocols.Ssl3,
-						false);
-
-					connected = apnsStream.CanWrite;
 				}
 				catch (Exception ex)
 				{
 					if (this.Error != null)
 						this.Error(this, ex);
 
-					connected = false;
-										
+					this.connected = false;
 				}
 
-				if (!connected)
-				{
-					int wait = ReconnectDelay;
-					int waited = 0;
-
-					while (waited < wait && !disposing)
-					{
-						System.Threading.Thread.Sleep(250);
-						waited += 250;
-					}
-				}
-
+				if (!disposing)
+					Thread.Sleep(500);
 			}
-
-			return connected;
 		}
 
+		
 
+
+		private bool Reconnect()
+		{
+			if (!firstConnect)
+			{
+				for (int i = 0; i < this.ReconnectDelay; i+=100)
+					System.Threading.Thread.Sleep(100);
+			}
+			else
+			{
+				firstConnect = false;
+			}
+
+
+			if (apnsStream != null && apnsStream.CanWrite)
+			{
+				try { Disconnect(); }
+				catch { }
+			}
+
+			if (apnsClient != null && apnsClient.Connected)
+			{
+				try { CloseSslStream(); }
+				catch { }
+			}
+
+			if (Connect())
+			{
+				this.connected = OpenSslStream();
+
+				return this.connected;
+			}
+
+			this.connected = false;
+
+			return this.connected;
+		}
+
+		private bool Connect()
+		{
+			int connectionAttempts = 0;
+			while (connectionAttempts < (this.SendRetries * 2) && (apnsClient == null || !apnsClient.Connected))
+			{
+				if (connectionAttempts > 0)
+					Thread.Sleep(this.ReconnectDelay);
+
+				connectionAttempts++;
+				
+				try
+				{
+					if (this.Connecting != null)
+						this.Connecting(this);
+
+					apnsClient = new TcpClient();
+					apnsClient.Connect(this.Host, this.Port);
+					
+				}
+				catch (SocketException ex)
+				{
+					if (this.Error != null)
+						this.Error(this, ex);
+
+					return false;
+				}
+			}
+			if (connectionAttempts >= 3)
+			{
+				if (this.Error != null)
+					this.Error(this, new NotificationException(3, "Too many connection attempts"));
+
+				return false;
+			}
+
+			return true;
+		}
+
+		private bool OpenSslStream()
+		{
+			apnsStream = new SslStream(apnsClient.GetStream(), false, new RemoteCertificateValidationCallback(validateServerCertificate), new LocalCertificateSelectionCallback(selectLocalCertificate));
+			
+			try
+			{
+				apnsStream.AuthenticateAsClient(this.Host, this.certificates, System.Security.Authentication.SslProtocols.Ssl3, false);
+			}
+			catch (System.Security.Authentication.AuthenticationException ex)
+			{
+				if (this.Error != null)
+					this.Error(this, ex);
+
+				return false;
+			}
+
+			if (!apnsStream.IsMutuallyAuthenticated)
+			{
+				if (this.Error != null)
+					this.Error(this, new NotificationException(4, "Ssl Stream Failed to Authenticate"));
+
+				return false;
+			}
+
+			if (!apnsStream.CanWrite)
+			{
+				if (this.Error != null)
+					this.Error(this, new NotificationException(5, "Ssl Stream is not Writable"));
+
+				return false;
+			}
+
+			if (this.Connected != null)
+				this.Connected(this);
+
+			return true;
+		}
+
+		private void EnsureDisconnected()
+		{
+			if (apnsStream != null)
+				CloseSslStream();
+			if (apnsClient != null)
+				Disconnect();
+		}
+
+		private void CloseSslStream()
+		{
+			try
+			{
+				apnsStream.Close();
+				apnsStream.Dispose();
+				apnsStream = null;
+			}
+			catch (Exception ex)
+			{
+				if (this.Error != null)
+					this.Error(this, ex);
+			}
+
+			if (this.Disconnected != null)
+				this.Disconnected(this);
+		}
+
+		private void Disconnect()
+		{
+			try
+			{
+				apnsClient.Close();
+			}
+			catch (Exception ex)
+			{
+				if (this.Error != null)
+					this.Error(this, ex);
+			}
+		}
+	
 		private bool validateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
 		{
 			return true; // Dont care about server's cert

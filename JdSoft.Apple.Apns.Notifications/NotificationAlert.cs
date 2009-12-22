@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace JdSoft.Apple.Apns.Notifications
 {
@@ -18,7 +19,7 @@ namespace JdSoft.Apple.Apns.Notifications
 			Body = null;
 			ActionLocalizedKey = null;
 			LocalizedKey = null;
-			LocalizedArgs = null;
+			LocalizedArgs = new List<object>();
 		}
 
 		/// <summary>
@@ -51,10 +52,15 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <summary>
 		/// Localized Argument List
 		/// </summary>
-		public object[] LocalizedArgs
+		public List<object> LocalizedArgs
 		{
 			get;
 			set;
+		}
+
+		public void AddLocalizedArgs(params object[] values)
+		{
+			this.LocalizedArgs.AddRange(values);
 		}
 
 		/// <summary>
@@ -67,12 +73,11 @@ namespace JdSoft.Apple.Apns.Notifications
 				if (!string.IsNullOrEmpty(Body)
 					|| !string.IsNullOrEmpty(ActionLocalizedKey)
 					|| !string.IsNullOrEmpty(LocalizedKey)
-					|| (LocalizedArgs != null && LocalizedArgs.Length > 0))
+					|| (LocalizedArgs != null && LocalizedArgs.Count > 0))
 					return false;
 				else
 					return true;
 			}
 		}
-
 	}
 }

@@ -23,7 +23,7 @@ namespace JdSoft.Apple.Apns.Feedback.Test
 
 			//This is the password that you protected your p12File 
 			//  If you did not use a password, set it as null or an empty string
-			string p12FilePassword = "thepassword";
+			string p12FilePassword = "password";
 
 
 			//Actual Code starts below:
