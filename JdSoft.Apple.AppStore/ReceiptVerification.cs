@@ -3,227 +3,153 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Net;
 
 namespace JdSoft.Apple.AppStore
 {
 	public class ReceiptVerification
 	{
 		#region Constants
-		private Regex rxResponse = new Regex("\\\"(signing-status|status)\\\"\\s{0,}(:|=)\\s{0,}\\\"{0,1}([0]|-42351){1}\\\"{0,1}", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
-		private Regex rxPairs = new Regex("\\\"(?<jsonKey>[^\\\"]+)\\\"[ ]{0,}(:|=)[ ]{0,}\\\"(?<jsonVal>[^\\\"]+)\\\"", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-		private Regex rxPurchaseInfo = new Regex("\\\"purchase-info\\\"\\s{0,}(:|=)\\s{0,}\\\"(?<pinfo>[^\\\"]+)\\\"", RegexOptions.Singleline | RegexOptions.Compiled | RegexOptions.IgnoreCase);
 		private const string urlSandbox = "https://sandbox.itunes.apple.com/verifyReceipt";
 		private const string urlProduction = "https://buy.itunes.apple.com/verifyReceipt";
 		#endregion
 
-		#region Constructors
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="sandbox">If true, Default Receipt Verification Sandbox Url will be used, otherwise Production Url will be used</param>
-		/// <param name="receiptData">Raw string data of the Receipt that the iPhone returned</param>
-		public ReceiptVerification(bool sandbox, string receiptData)
-		{
-			TransactionIsValid = false;
-			Receipt = null;
-
-			Url = sandbox ? urlSandbox : urlProduction;
-			ReceiptData = receiptData;
-		}
-		
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="url">Receipt Verification Url to Use</param>
-		/// <param name="receiptData">Raw string data of the Receipt that the iPhone returned</param>
-		public ReceiptVerification(string url, string receiptData)
-		{
-			TransactionIsValid = false;
-			Receipt = null;
-
-			Url = url;
-			ReceiptData = receiptData;
-		}
-		#endregion
-
-		#region Properties
-		/// <summary>
-		/// Gets the Receipt Verification Url being Used
-		/// </summary>
-		public string Url
-		{
-			get;
-			private set;
-		}
-
-		/// <summary>
-		/// Gets the Response after the Verify method is called
-		/// </summary>
-		public string Response
-		{
-			get;
-			private set;
-		}
-
-		/// <summary>
-		/// Gets the Raw iPhone Receipt data string being used
-		/// </summary>
-		public string ReceiptData
-		{
-			get;
-			private set;
-		}
-
-		/// <summary>
-		/// Gets the Validity of the Transaction.  This property will always be false before Verify is called.
-		/// </summary>
-		public bool TransactionIsValid
-		{
-			get;
-			private set;
-		}
-
-		/// <summary>
-		/// Gets the resulting Receipt object after the Verify method is called.  The receipt is just an object representation of the Receipt Data passed in.
-		/// </summary>
-		public Receipt Receipt
-		{
-			get;
-			private set;
-		}
-		#endregion
-
-		#region Public Methods
+		#region Public Static Methods
 		/// <summary>
 		/// Sends the ReceiptData to the Verification Url to be verified.
 		/// </summary>
 		/// <returns>If true, the Receipt Verification Server indicates a valid transaction response</returns>
-		public bool Verify()
+		public static bool IsReceiptValid(Receipt receipt)
 		{
-			//Receipt is for before it's verified
-			Receipt = parseReceipt(ReceiptData);
+			return (receipt != null && receipt.Status == 0);
+		}
 
-			try
+		public static Receipt GetReceipt(bool sandbox, string receiptData)
+		{
+			return GetReceipt(sandbox ? urlSandbox : urlProduction, receiptData);
+		}
+
+		public static Receipt GetReceipt(string url, string receiptData)
+		{
+			Receipt result = null;
+
+			string post = PostRequest(url, ConvertReceiptToPost(receiptData));
+
+			if (!string.IsNullOrEmpty(post))
 			{
-				//Receipt needs to be base64 encoded			
-				string receipt64 = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(ReceiptData));
-
-				//Need to encase the received receipt into a JSON container that the verifyReceipt Url likes
-				string json = string.Format("{{\"receipt-data\":\"{0}\"}}", receipt64);
-
-				System.Net.WebRequest wr = System.Net.WebRequest.Create(Url);
-				wr.ContentType = "text/plain";
-				wr.Method = "POST";
-				//wr.Headers.Add("content-encoding", "ASCII");
-
-				System.IO.StreamWriter sw = new System.IO.StreamWriter(wr.GetRequestStream());
-				sw.Write(json);
-				sw.Flush();
-				sw.Close();
-
-				System.Net.WebResponse wresp = wr.GetResponse();
-				System.IO.StreamReader sr = new System.IO.StreamReader(wresp.GetResponseStream());
-				Response = sr.ReadToEnd();
-				sr.Close();
-
-				//Parse out the transaction from the response
-				TransactionIsValid = rxResponse.IsMatch(Response);
+				try { result = new Receipt(post); }
+				catch { result = null; }
 			}
-			catch { TransactionIsValid = false; }
 
-			//Return if it's a 'valid' response
-			return TransactionIsValid;
+			return result;
 		}
 		#endregion
 
-		#region Private Methods
-		private Receipt parseReceipt(string receiptData)
+		#region Private Static Methods
+
+		/// <summary>
+		/// Make a string with the receipt encoded
+		/// </summary>
+		/// <param name="receipt"></param>
+		/// <returns></returns>
+		private static string ConvertReceiptToPost(string receipt)
 		{
-			Receipt rcpt = null;
+			string itunesDecodedReceipt = Encoding.UTF8.GetString(ReceiptVerification.ConvertAppStoreTokenToBytes(receipt.Replace("<", string.Empty).Replace(">", string.Empty))).Trim();
+			string encodedReceipt = Base64Encode(itunesDecodedReceipt);
+			return string.Format(@"{{""receipt-data"":""{0}""}}", encodedReceipt);
+		}
 
-			Match match = rxPurchaseInfo.Match(receiptData);
+		/// <summary>
+		/// Base64 Encoding
+		/// </summary>
+		/// <param name="str"></param>
+		/// <returns></returns>
+		private static string Base64Encode(string str)
+		{
+			byte[] encbuff = System.Text.Encoding.UTF8.GetBytes(str);
+			return Convert.ToBase64String(encbuff);
+		}
 
-			if (match != null && match.Success && match.Groups["pinfo"] != null)
+		/// <summary>
+		/// Base64 Decoding
+		/// </summary>
+		/// <param name="str"></param>
+		/// <returns></returns>
+		private static string Base64Decode(string str)
+		{
+			byte[] decbuff = Convert.FromBase64String(str);
+			return System.Text.Encoding.UTF8.GetString(decbuff);
+		}
+
+		/// <summary>
+		/// Sends a request to the server and reads the response
+		/// </summary>
+		/// <param name="url"></param>
+		/// <param name="postData"></param>
+		/// <returns></returns>
+		private static string PostRequest(string url, string postData)
+		{
+			byte[] byteArray = Encoding.UTF8.GetBytes(postData);
+			return PostRequest(url, byteArray);
+		}
+
+		/// <summary>
+		/// Sends a request to the server and reads the response
+		/// </summary>
+		/// <param name="url"></param>
+		/// <param name="byteArray"></param>
+		/// <returns></returns>
+		private static string PostRequest(string url, byte[] byteArray)
+		{
+			try
 			{
-				string purchaseInfo = string.Empty;
+				WebRequest request = HttpWebRequest.Create(url);
+				request.Method = "POST";
+				request.ContentLength = byteArray.Length;
+				request.ContentType = "text/plain";
 
-				try { purchaseInfo = System.Text.Encoding.ASCII.GetString(Convert.FromBase64String(match.Groups["pinfo"].Value)); }
-				catch { }
-
-				if (!string.IsNullOrEmpty(purchaseInfo))
+				using (System.IO.Stream dataStream = request.GetRequestStream())
 				{
-					rcpt = new Receipt();
-					rcpt.Quantity = 1;
-					rcpt.Timestamp = DateTime.Now;
-					rcpt.VersionExternalIdentifier = string.Empty;
-					rcpt.Bvrs = string.Empty;
+					dataStream.Write(byteArray, 0, byteArray.Length);
+					dataStream.Close();
+				}
 
-					MatchCollection matches = rxPairs.Matches(purchaseInfo);
-
-					foreach (Match pair in matches)
+				using (WebResponse r = request.GetResponse())
+				{
+					using (System.IO.StreamReader sr = new System.IO.StreamReader(r.GetResponseStream()))
 					{
-						if (pair.Groups["jsonKey"] != null && pair.Groups["jsonVal"] != null)
-						{
-							string key = pair.Groups["jsonKey"].Value.ToLower().Trim();
-							string val = pair.Groups["jsonVal"].Value.Trim();
-
-							switch (key)
-							{
-								case "transaction_id":
-								case "transaction-id":
-									rcpt.TransactionId = val;
-									break;
-								case "item_id":
-								case "app_item_id":
-								case "item-id":
-								case "app-item-id":
-									rcpt.AppItemId = val;
-									break;
-								case "product_id":
-								case "product-id":
-									rcpt.ProductId = val;
-									break;
-								case "bid":
-									rcpt.Bid = val;
-									break;
-								case "bvrs":
-									rcpt.Bvrs = val;
-									break;
-								case "original_transaction_id":
-								case "original-transaction-id":
-									rcpt.OriginalTransactionId = val;
-									break;
-								case "version_external_identifier":
-								case "version-external-identifier":
-									rcpt.VersionExternalIdentifier = val;
-									break;
-								case "purchase_date":
-								case "purchase-date":
-									if (val.Length > 20)
-									{
-										DateTime pDate = DateTime.Now;
-										DateTime.TryParse(val.Substring(0, 19), out pDate);
-										rcpt.PurchaseDate = pDate;
-									}
-									break;
-								case "original_purchase_date":
-								case "original-purchase-date":
-									if (val.Length > 20)
-									{
-										DateTime opDate = DateTime.Now.AddYears(-11);
-										DateTime.TryParse(val.Substring(0, 19), out opDate);
-										rcpt.OriginalPurchaseDate = opDate;
-									}
-									break;
-							}
-
-						}
+						return sr.ReadToEnd();
 					}
 				}
 			}
-
-			return rcpt;
+			catch (Exception ex)
+			{
+				return string.Empty;
+			}
 		}
-		#endregion
+
+		/// <summary>
+		/// Takes the receipt from Apple's App Store and converts it to bytes
+		/// that we can understand
+		/// </summary>
+		/// <param name="token"></param>
+		/// <returns></returns>
+		private static byte[] ConvertAppStoreTokenToBytes(string token)
+		{
+			token = token.Replace(" ", string.Empty);
+			int i = 0;
+			int b = 0;
+			List<byte> bytes = new List<byte>();
+			while (i < token.Length)
+			{
+				bytes.Add(Convert.ToByte(token.Substring(i, 2), 16));
+				i += 2;
+				b++;
+			}
+
+			return bytes.ToArray();
+		}
+
+		#endregion Private Static Methods
 	}
 }

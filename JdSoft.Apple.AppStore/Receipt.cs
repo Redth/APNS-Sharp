@@ -2,76 +2,58 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace JdSoft.Apple.AppStore
 {
+	[Serializable()]
 	public class Receipt
 	{
-		public Receipt()
-		{
-			TransactionId = string.Empty;
-			Timestamp = DateTime.Now;
-			AppItemId = string.Empty;
-			PurchaseDate = DateTime.MinValue;
-			ProductId = string.Empty;
-			Quantity = 0;
-			OriginalPurchaseDate = DateTime.MinValue;
-			OriginalTransactionId = string.Empty;
-			Bid = string.Empty;
-			Bvrs = string.Empty;
-			VersionExternalIdentifier = string.Empty;
-			VerifyStatus = string.Empty;
-		}
+		#region Constructor
 
-		public string TransactionId
+		/// <summary>
+		/// Creates the receipt from Apple's Response
+		/// </summary>
+		/// <param name="receipt"></param>
+		public Receipt(string receipt)
 		{
-			get;
-			set;
-		}
+			JObject json = JObject.Parse(receipt);
 
-		public DateTime Timestamp
-		{
-			get;
-			set;
-		}
+			int status = -1;
 
-		public string AppItemId
-		{
-			get;
-			set;
-		}
+			int.TryParse(json["status"].ToString(), out status);
+			this.Status = status;
 
-		public DateTime PurchaseDate
-		{
-			get;
-			set;
-		}
+			// Receipt is actually a child
+			json = (JObject)json["receipt"];
 
-		public string ProductId
-		{
-			get;
-			set;
-		}
+			
+			this.OriginalTransactionId = json["original_transaction_id"].ToString();
+			this.Bvrs = json["bvrs"].ToString();
+			this.ProductId = json["product_id"].ToString();
 
-		public int Quantity
-		{
-			get;
-			set;
-		}
+			DateTime purchaseDate = DateTime.MinValue;
+			if (DateTime.TryParseExact(json["purchase_date"].ToString().Replace(" Etc/GMT", string.Empty).Replace("\"", string.Empty).Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out purchaseDate))
+				this.PurchaseDate = purchaseDate;
 
-		public DateTime OriginalPurchaseDate
-		{
-			get;
-			set;
-		}
+			DateTime originalPurchaseDate = DateTime.MinValue;
+			if (DateTime.TryParseExact(json["original_purchase_date"].ToString().Replace(" Etc/GMT", string.Empty).Replace("\"", string.Empty).Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out originalPurchaseDate))
+				this.OriginalPurchaseDate = originalPurchaseDate;
+
+			int quantity = 1;
+			int.TryParse(json["quantity"].ToString(), out quantity);
+			this.Quantity = quantity;
+
+			this.BundleIdentifier = json["bid"].ToString();
+
+			this.TransactionId = json["transaction_id"].ToString();
+		} 
+
+		#endregion Constructor
+
+		#region Properties
 
 		public string OriginalTransactionId
-		{
-			get;
-			set;
-		}
-
-		public string Bid
 		{
 			get;
 			set;
@@ -83,16 +65,48 @@ namespace JdSoft.Apple.AppStore
 			set;
 		}
 
-		public string VersionExternalIdentifier
+		public string ProductId
 		{
 			get;
 			set;
 		}
 
-		public string VerifyStatus
+		public DateTime? PurchaseDate
 		{
 			get;
 			set;
 		}
+
+		public int Quantity
+		{
+			get;
+			set;
+		}
+
+		public string BundleIdentifier
+		{
+			get;
+			set;
+		}
+
+		public DateTime? OriginalPurchaseDate
+		{
+			get;
+			set;
+		}
+
+		public string TransactionId
+		{
+			get;
+			set;
+		}
+
+		public int Status
+		{
+			get;
+			set;
+		}
+
+		#endregion Properties
 	}
 }

@@ -28,35 +28,33 @@ namespace JdSoft.Apple.AppStore.Test
 			if (!string.IsNullOrEmpty(receiptData))
 			{
 				//New verification instance
-				ReceiptVerification verifier = new ReceiptVerification(this.checkSandbox.Text, receiptData);
+				Receipt receipt = ReceiptVerification.GetReceipt(this.checkSandbox.Checked, receiptData);
 
 				//Do the actual verification
 				// this makes the https post to itunes verification servers
-				if (verifier.Verify())
+				if (ReceiptVerification.IsReceiptValid(receipt))
 					AppendText("iTunes Receipt Verification: OK!");
 				else
 					AppendText("iTunes Receipt Verification: Failed!");
 
 				AppendText(string.Empty);
-				AppendText(string.Format("iTunes Receipt Verification Raw Response: {0}{1}", Environment.NewLine, verifier.Response));
-				AppendText(string.Empty);
 	
 				//Spit out the info
-				if (verifier.Receipt != null)
+				if (receipt != null)
 				{
 					AppendText("RECEIPT DATA:");
-					AppendText(string.Format("  AppItemId: {0}", verifier.Receipt.AppItemId));
-					AppendText(string.Format("  Bid: {0}", verifier.Receipt.Bid));
-					AppendText(string.Format("  Bvrs: {0}", verifier.Receipt.Bvrs));
-					AppendText(string.Format("  OriginalPurchaseDate: {0}", verifier.Receipt.OriginalPurchaseDate));
-					AppendText(string.Format("  OriginalTransactionId: {0}", verifier.Receipt.OriginalTransactionId));
-					AppendText(string.Format("  ProductId: {0}", verifier.Receipt.ProductId));
-					AppendText(string.Format("  PurchaseDate: {0}", verifier.Receipt.PurchaseDate));
-					AppendText(string.Format("  Quantity: {0}", verifier.Receipt.Quantity));
-					AppendText(string.Format("  Timestamp: {0}", verifier.Receipt.Timestamp));
-					AppendText(string.Format("  TransactionId: {0}", verifier.Receipt.TransactionId));
-					AppendText(string.Format("  VerifyStatus: {0}", verifier.Receipt.VerifyStatus));
-					AppendText(string.Format("  VersionExternalIdentifier: {0}", verifier.Receipt.VersionExternalIdentifier));
+					//AppendText(string.Format("  AppItemId: {0}", receipt.ProjectId));
+					//AppendText(string.Format("  Bid: {0}", receipt.Bid));
+					AppendText(string.Format("  Bvrs: {0}", receipt.Bvrs));
+					AppendText(string.Format("  OriginalPurchaseDate: {0}", receipt.OriginalPurchaseDate));
+					AppendText(string.Format("  OriginalTransactionId: {0}",receipt.OriginalTransactionId));
+					AppendText(string.Format("  ProductId: {0}", receipt.ProductId));
+					AppendText(string.Format("  PurchaseDate: {0}", receipt.PurchaseDate));
+					AppendText(string.Format("  Quantity: {0}", receipt.Quantity));
+					//AppendText(string.Format("  Timestamp: {0}", receipt.Timestamp));
+					AppendText(string.Format("  TransactionId: {0}", receipt.TransactionId));
+					//AppendText(string.Format("  VerifyStatus: {0}", receipt.VerifyStatus));
+					//AppendText(string.Format("  VersionExternalIdentifier: {0}", receipt.VersionExternalIdentifier));
 					AppendText(string.Empty);
 				}
 			}

@@ -341,7 +341,7 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		private void workerMethod()
 		{
-			while (!disposing)
+			while (!disposing && !closing)
 			{
 				try
 				{
