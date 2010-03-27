@@ -143,9 +143,9 @@ namespace JdSoft.Apple.Apns.Feedback
 			encoding = Encoding.ASCII;
 
 			if (string.IsNullOrEmpty(P12FilePassword))
-				certificate = new X509Certificate2(P12File);
+				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File));
 			else
-				certificate = new X509Certificate2(P12File, P12FilePassword);
+				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File), P12FilePassword);
 
 			certificates = new X509CertificateCollection();
 			certificates.Add(certificate);

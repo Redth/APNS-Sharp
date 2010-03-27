@@ -236,6 +236,14 @@ namespace JdSoft.Apple.Apns.Notifications
 			get;
 			private set;
 		}
+
+		/// <summary>
+		/// Gets the number of notifications currently in the queue
+		/// </summary>
+		public int QueuedNotificationsCount
+		{
+			get { return notifications.Count; }
+		}
 		#endregion
 
 		#region Public Methods
@@ -328,9 +336,9 @@ namespace JdSoft.Apple.Apns.Notifications
 
 			//Need to load the private key seperately from apple
 			if (string.IsNullOrEmpty(p12FilePassword))
-				certificate = new X509Certificate2(p12File);
+				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(p12File));
 			else
-				certificate = new X509Certificate2(p12File, p12FilePassword);
+				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(p12File), p12FilePassword);
 
 			certificates = new X509CertificateCollection();
 			certificates.Add(certificate);

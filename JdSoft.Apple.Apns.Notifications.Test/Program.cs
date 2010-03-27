@@ -64,9 +64,8 @@ namespace JdSoft.Apple.Apns.Test
 			for (int i = 1; i <= count; i++)
 			{
 				//Create a new notification to send
-				Notification alertNotification = new Notification();
+				Notification alertNotification = new Notification(testDeviceToken);
 				
-				alertNotification.DeviceToken = testDeviceToken;				
 				alertNotification.Payload.Alert.Body = string.Format("Testing {0}...", i);
 				alertNotification.Payload.Sound = "default";
 				alertNotification.Payload.Badge = i;

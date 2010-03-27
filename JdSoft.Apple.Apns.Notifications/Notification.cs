@@ -20,18 +20,24 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		public Notification()
 		{
-			DeviceToken = string.Empty;
-			Payload = new NotificationPayload();
+		    DeviceToken = string.Empty;
+		    Payload = new NotificationPayload();
 		}
 
 		public Notification(string deviceToken)
 		{
+			if (!string.IsNullOrEmpty(deviceToken) && deviceToken.Length != DEVICE_TOKEN_STRING_SIZE)
+				throw new BadDeviceTokenException(deviceToken);
+
 			DeviceToken = deviceToken;
 			Payload = new NotificationPayload();
 		}
 
 		public Notification(string deviceToken, NotificationPayload payload)
 		{
+			if (!string.IsNullOrEmpty(deviceToken) && deviceToken.Length != DEVICE_TOKEN_STRING_SIZE)
+				throw new BadDeviceTokenException(deviceToken);
+
 			DeviceToken = deviceToken;
 			Payload = payload;
 		}

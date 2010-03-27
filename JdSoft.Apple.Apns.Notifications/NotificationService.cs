@@ -103,6 +103,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		private List<NotificationConnection> notificationConnections = new List<NotificationConnection>();
 		private Random rand = new Random((int)DateTime.Now.Ticks);
 		private int sequential = 0;
+		private int reconnectDelay = 5000;
 		private int sendRetries = 1;
 
 		private bool closing = false;
@@ -206,8 +207,14 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		public int ReconnectDelay
 		{
-			get;
-			set;
+			get { return reconnectDelay; }
+			set
+			{
+				reconnectDelay = value;
+
+				foreach (NotificationConnection con in notificationConnections)
+					con.ReconnectDelay = reconnectDelay;
+			}
 		}
 
 		/// <summary>
