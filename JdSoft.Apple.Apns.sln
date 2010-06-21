@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Notifications", "JdSoft.Apple.Apns.Notifications\JdSoft.Apple.Apns.Notifications.csproj", "{4CFB9AA8-55F8-46DC-B7BD-9E18B9939110}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Feedback", "JdSoft.Apple.Apns.Feedback\JdSoft.Apple.Apns.Feedback.csproj", "{B87C2903-2B6B-49FF-B735-630A5CB69521}"

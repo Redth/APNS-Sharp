@@ -275,9 +275,13 @@ namespace JdSoft.Apple.Apns.Notifications
 			// is sleeping after its loop, but if we set closing true within that 100 ms,
 			// the queued notifications during that time would not get dequeued as the loop
 			// would exit due to closing = true;
-			// 250 ms should be ample time for the loop to dequeue any remaining notifications
-			// after we stopped accepting above
-			Thread.Sleep(250);
+			// Changed to keep looping until the notifications count is 0, meaning all have been dequeued,
+			// or a timeout of 10 seconds has occurred. 
+			int slept = 0; 
+			int maxSleep = 10000; //10 seconds
+
+			while (notifications.Count > 0 && slept++ <= maxSleep)
+				Thread.Sleep(100);
 			
 			closing = true;
 
@@ -336,7 +340,7 @@ namespace JdSoft.Apple.Apns.Notifications
 
 			//Need to load the private key seperately from apple
 			if (string.IsNullOrEmpty(p12FilePassword))
-				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(p12File));
+				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(p12File), string.Empty, X509KeyStorageFlags.MachineKeySet);
 			else
 				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(p12File), p12FilePassword);
 
