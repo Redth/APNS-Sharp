@@ -280,8 +280,11 @@ namespace JdSoft.Apple.Apns.Notifications
 			int slept = 0; 
 			int maxSleep = 10000; //10 seconds
 
-			while (notifications.Count > 0 && slept++ <= maxSleep)
+			while (notifications.Count > 0 && slept <= maxSleep)
+			{
 				Thread.Sleep(100);
+				slept += 100;
+			}
 			
 			closing = true;
 
