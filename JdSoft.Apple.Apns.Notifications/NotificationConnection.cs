@@ -16,11 +16,6 @@ namespace JdSoft.Apple.Apns.Notifications
 	/// </summary>
 	public class NotificationConnection : IDisposable
 	{
-		#region Constants
-		private const string hostSandbox = "gateway.sandbox.push.apple.com";
-		private const string hostProduction = "gateway.push.apple.com";
-		#endregion
-
 		#region Delegates and Events
 		/// <summary>
 		/// Handles General Exceptions
@@ -112,16 +107,10 @@ namespace JdSoft.Apple.Apns.Notifications
 		private bool disposing;
 		private bool closing;
 		private bool accepting;
-		private bool connected;
-		private bool firstConnect;
 
-		private Encoding encoding;
 		private ThreadSafeQueue<Notification> notifications;
 		private Thread workerThread;
-		private X509Certificate certificate;
-		private X509CertificateCollection certificates;
-		private TcpClient apnsClient;
-		private SslStream apnsStream;
+		private NotificationChannel apnsChannel;
 		#endregion
 
 		#region Constructors
@@ -133,13 +122,8 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		public NotificationConnection(string host, int port, string p12File)
 		{
-			connected = false;
-			firstConnect = true;
-
-			Host = host;
-			Port = port;
-
-			start(p12File, null);
+			apnsChannel = new NotificationChannel(host, port, p12File);
+			start();
 		}
 
 		/// <summary>
@@ -151,13 +135,8 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12FilePassword">Password protecting the p12File</param>
 		public NotificationConnection(string host, int port, string p12File, string p12FilePassword)
 		{
-			connected = false;
-			firstConnect = true;
-
-			Host = host;
-			Port = port;
-			
-			start(p12File, p12FilePassword);
+			apnsChannel = new NotificationChannel(host, port, p12File, p12FilePassword);
+			start();
 		}
 
 		/// <summary>
@@ -167,10 +146,8 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		public NotificationConnection(bool sandbox, string p12File)
 		{
-			Host = sandbox ? hostSandbox : hostProduction;
-			Port = 2195;
-
-			start(p12File, null);
+			apnsChannel = new NotificationChannel(sandbox, p12File);
+			start();
 		}
 
 		/// <summary>
@@ -181,14 +158,10 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12FilePassword">Password protecting the p12File</param>
 		public NotificationConnection(bool sandbox, string p12File, string p12FilePassword)
 		{
-			connected = false;
-			firstConnect = true;
-
-			Host = sandbox ? hostSandbox : hostProduction;
-			Port = 2195;
-
-			start(p12File, p12FilePassword);
+			apnsChannel = new NotificationChannel(sandbox, p12File, p12FilePassword);
+			start();
 		}
+
 		#endregion
 
 		#region Properties
@@ -224,8 +197,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		public string Host
 		{
-			get;
-			private set;
+			get { return apnsChannel.Host; }
 		}
 
 		/// <summary>
@@ -233,8 +205,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		public int Port
 		{
-			get;
-			private set;
+			get { return apnsChannel.Port; }
 		}
 
 		/// <summary>
@@ -269,7 +240,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		public void Close()
 		{
 			accepting = false;
-			
+
 			//Sleep here to prevent a race condition
 			// in which a notification could be queued while the worker thread
 			// is sleeping after its loop, but if we set closing true within that 100 ms,
@@ -285,7 +256,7 @@ namespace JdSoft.Apple.Apns.Notifications
 				Thread.Sleep(100);
 				slept += 100;
 			}
-			
+
 			closing = true;
 
 			//Wait for buffer to be flushed out
@@ -298,60 +269,68 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		public void Dispose()
 		{
-			
+
 			accepting = false;
-			
+
 			//We don't really care about the race condition here
 			// since disposing does NOT wait for all notifications to be sent
-			
+
 			disposing = true;
 
 			//Wait for the worker to finish cleanly
 			if (workerThread != null && workerThread.IsAlive)
 				workerThread.Join();
 
-
-			try { apnsStream.Close(); }
-			catch { }
-
-			try { apnsStream.Dispose(); }
-			catch { }
-
-			try { apnsClient.Client.Shutdown(SocketShutdown.Both); }
-			catch { }
-
-			try { apnsClient.Client.Close(); }
-			catch { }
-
-			try { apnsClient.Close(); }
+			try { apnsChannel.Dispose(); }
 			catch { }
 		}
 		#endregion
 
 		#region Private Methods
-		private void start(string p12File, string p12FilePassword)
+		private void start()
 		{
 			accepting = true;
 			disposing = false;
 			closing = false;
 
-			encoding = Encoding.ASCII;
 			notifications = new ThreadSafeQueue<Notification>();
 			Id = System.Guid.NewGuid().ToString("N");
 			ReconnectDelay = 3000; //3 seconds
 			SendRetries = 3;
 
-			//Need to load the private key seperately from apple
-			if (string.IsNullOrEmpty(p12FilePassword))
-				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(p12File), string.Empty, X509KeyStorageFlags.MachineKeySet);
-			else
-				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(p12File), p12FilePassword);
-
-			certificates = new X509CertificateCollection();
-			certificates.Add(certificate);
+			apnsChannel.ReconnectDelay = this.ReconnectDelay;
+			apnsChannel.ConnectRetries = SendRetries * 2;
+			apnsChannel.Error += new NotificationChannel.OnError(OnChannelError);
+			apnsChannel.Connected += new NotificationChannel.OnConnected(OnChannelConnected);
+			apnsChannel.Connecting += new NotificationChannel.OnConnecting(OnChannelConnecting);
+			apnsChannel.Disconnected += new NotificationChannel.OnDisconnected(OnChannelDisconnected);
 
 			workerThread = new Thread(new ThreadStart(workerMethod));
 			workerThread.Start();
+		}
+
+		void OnChannelDisconnected(object sender)
+		{
+			if (Disconnected != null)
+				Disconnected(this);
+		}
+
+		void OnChannelConnecting(object sender)
+		{
+			if (Connecting != null)
+				Connecting(this);
+		}
+
+		void OnChannelConnected(object sender)
+		{
+			if (Connected != null)
+				Connected(this);
+		}
+
+		void OnChannelError(object sender, Exception ex)
+		{
+			if (Error != null)
+				Error(this, ex);
 		}
 
 		private void workerMethod()
@@ -363,7 +342,7 @@ namespace JdSoft.Apple.Apns.Notifications
 					while (this.notifications.Count > 0 && !disposing)
 					{
 						Notification notification = this.notifications.Dequeue();
-	
+
 						int tries = 0;
 						bool sent = false;
 
@@ -373,12 +352,11 @@ namespace JdSoft.Apple.Apns.Notifications
 							{
 								if (!disposing)
 								{
-									while (!connected)
-										Reconnect();
+									apnsChannel.EnsureConnection();
 
 									try
 									{
-										apnsStream.Write(notification.ToBytes());
+										apnsChannel.Send(notification);
 									}
 									catch (BadDeviceTokenException btex)
 									{
@@ -392,7 +370,7 @@ namespace JdSoft.Apple.Apns.Notifications
 									}
 
 									string txtAlert = string.Empty;
-																		
+
 									if (this.NotificationSuccess != null)
 										this.NotificationSuccess(this, notification);
 
@@ -400,7 +378,7 @@ namespace JdSoft.Apple.Apns.Notifications
 								}
 								else
 								{
-									this.connected = false;
+									apnsChannel.ForceReconnect();
 								}
 							}
 							catch (Exception ex)
@@ -408,7 +386,7 @@ namespace JdSoft.Apple.Apns.Notifications
 								if (this.Error != null)
 									this.Error(this, ex);
 
-								this.connected = false;
+								apnsChannel.ForceReconnect();
 							}
 
 							tries++;
@@ -424,7 +402,7 @@ namespace JdSoft.Apple.Apns.Notifications
 					if (this.Error != null)
 						this.Error(this, ex);
 
-					this.connected = false;
+					apnsChannel.ForceReconnect();
 				}
 
 				if (!disposing)
@@ -432,171 +410,10 @@ namespace JdSoft.Apple.Apns.Notifications
 			}
 		}
 
-		
 
 
-		private bool Reconnect()
-		{
-			if (!firstConnect)
-			{
-				for (int i = 0; i < this.ReconnectDelay; i+=100)
-					System.Threading.Thread.Sleep(100);
-			}
-			else
-			{
-				firstConnect = false;
-			}
 
 
-			if (apnsStream != null && apnsStream.CanWrite)
-			{
-				try { Disconnect(); }
-				catch { }
-			}
-
-			if (apnsClient != null && apnsClient.Connected)
-			{
-				try { CloseSslStream(); }
-				catch { }
-			}
-
-			if (Connect())
-			{
-				this.connected = OpenSslStream();
-
-				return this.connected;
-			}
-
-			this.connected = false;
-
-			return this.connected;
-		}
-
-		private bool Connect()
-		{
-			int connectionAttempts = 0;
-			while (connectionAttempts < (this.SendRetries * 2) && (apnsClient == null || !apnsClient.Connected))
-			{
-				if (connectionAttempts > 0)
-					Thread.Sleep(this.ReconnectDelay);
-
-				connectionAttempts++;
-				
-				try
-				{
-					if (this.Connecting != null)
-						this.Connecting(this);
-
-					apnsClient = new TcpClient();
-					apnsClient.Connect(this.Host, this.Port);
-					
-				}
-				catch (SocketException ex)
-				{
-					if (this.Error != null)
-						this.Error(this, ex);
-
-					return false;
-				}
-			}
-			if (connectionAttempts >= 3)
-			{
-				if (this.Error != null)
-					this.Error(this, new NotificationException(3, "Too many connection attempts"));
-
-				return false;
-			}
-
-			return true;
-		}
-
-		private bool OpenSslStream()
-		{
-			apnsStream = new SslStream(apnsClient.GetStream(), false, new RemoteCertificateValidationCallback(validateServerCertificate), new LocalCertificateSelectionCallback(selectLocalCertificate));
-			
-			try
-			{
-				apnsStream.AuthenticateAsClient(this.Host, this.certificates, System.Security.Authentication.SslProtocols.Ssl3, false);
-			}
-			catch (System.Security.Authentication.AuthenticationException ex)
-			{
-				if (this.Error != null)
-					this.Error(this, ex);
-
-				return false;
-			}
-
-			if (!apnsStream.IsMutuallyAuthenticated)
-			{
-				if (this.Error != null)
-					this.Error(this, new NotificationException(4, "Ssl Stream Failed to Authenticate"));
-
-				return false;
-			}
-
-			if (!apnsStream.CanWrite)
-			{
-				if (this.Error != null)
-					this.Error(this, new NotificationException(5, "Ssl Stream is not Writable"));
-
-				return false;
-			}
-
-			if (this.Connected != null)
-				this.Connected(this);
-
-			return true;
-		}
-
-		private void EnsureDisconnected()
-		{
-			if (apnsStream != null)
-				CloseSslStream();
-			if (apnsClient != null)
-				Disconnect();
-		}
-
-		private void CloseSslStream()
-		{
-			try
-			{
-				apnsStream.Close();
-				apnsStream.Dispose();
-				apnsStream = null;
-			}
-			catch (Exception ex)
-			{
-				if (this.Error != null)
-					this.Error(this, ex);
-			}
-
-			if (this.Disconnected != null)
-				this.Disconnected(this);
-		}
-
-		private void Disconnect()
-		{
-			try
-			{
-				apnsClient.Close();
-			}
-			catch (Exception ex)
-			{
-				if (this.Error != null)
-					this.Error(this, ex);
-			}
-		}
-	
-		private bool validateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-		{
-			return true; // Dont care about server's cert
-		}
-
-		private X509Certificate selectLocalCertificate(object sender, string targetHost, X509CertificateCollection localCertificates,
-			X509Certificate remoteCertificate, string[] acceptableIssuers)
-		{
-			return certificate;
-		}
 		#endregion
 	}
 }
