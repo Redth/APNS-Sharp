@@ -72,6 +72,22 @@ namespace JdSoft.Apple.Apns.Feedback
 			ReconnectDelay = 10000;
 		}
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="host">Push Notification Feedback Host</param>
+        /// <param name="port">Push Notification Feedback Port</param>
+        /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+        public FeedbackService(string host, int port, byte[] p12FileBytes)
+        {
+            Id = System.Guid.NewGuid().ToString("N");
+            Host = host;
+            Port = port;
+            certificate = new X509Certificate2(p12FileBytes);
+            ConnectAttempts = 3;
+            ReconnectDelay = 10000;
+        }
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -90,6 +106,24 @@ namespace JdSoft.Apple.Apns.Feedback
 			ReconnectDelay = 10000;
 		}
 
+        /// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="host">Push Notification Feedback Host</param>
+		/// <param name="port">Push Notification Feedback Port</param>
+        /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+		/// <param name="p12FilePassword">Password protecting the p12File</param>
+		public FeedbackService(string host, int port, byte[] p12FileBytes, string p12FilePassword)
+        {
+            Id = System.Guid.NewGuid().ToString("N");
+            Host = host;
+            Port = port;
+            certificate = new X509Certificate2(p12FileBytes, p12FilePassword);
+            P12FilePassword = p12FilePassword;
+            ConnectAttempts = 3;
+            ReconnectDelay = 10000;
+        }
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -103,6 +137,20 @@ namespace JdSoft.Apple.Apns.Feedback
 			P12File = p12File;
 			ConnectAttempts = 3;
 		}
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
+        /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+        public FeedbackService(bool sandbox, byte[] p12FileBytes)
+        {
+            Id = System.Guid.NewGuid().ToString("N");
+            Host = sandbox ? hostSandbox : hostProduction;
+            Port = 2196;
+            certificate = new X509Certificate2(p12FileBytes);
+            ConnectAttempts = 3;
+        }
 
 		/// <summary>
 		/// Constructor
@@ -120,6 +168,24 @@ namespace JdSoft.Apple.Apns.Feedback
 			ConnectAttempts = 3;
 			ReconnectDelay = 10000;
 		}
+
+        /// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
+        /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+		/// <param name="p12FilePassword">Password protecting the p12File</param>
+		public FeedbackService(bool sandbox, byte[] p12FileBytes, string p12FilePassword)
+        {
+            Id = System.Guid.NewGuid().ToString("N");
+            Host = sandbox ? hostSandbox : hostProduction;
+            Port = 2196;
+            certificate = new X509Certificate2(p12FileBytes, p12FilePassword);
+            P12FilePassword = p12FilePassword;
+            ConnectAttempts = 3;
+            ReconnectDelay = 10000;
+        }
+
 		#endregion
 
 		#region Public Methods
@@ -142,10 +208,14 @@ namespace JdSoft.Apple.Apns.Feedback
 
 			encoding = Encoding.ASCII;
 
-			if (string.IsNullOrEmpty(P12FilePassword))
-				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File));
-			else
-				certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File), P12FilePassword);
+            // certificate will already be set if one of the constructors that takes a byte array was used.
+            if (certificate == null)
+            {
+                if (string.IsNullOrEmpty(P12FilePassword))
+                    certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File));
+                else
+                    certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File), P12FilePassword);
+            }
 
 			certificates = new X509CertificateCollection();
 			certificates.Add(certificate);

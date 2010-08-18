@@ -110,7 +110,7 @@ namespace JdSoft.Apple.Apns.Notifications
         /// </summary>
         /// <param name="host">Push Notification Gateway Host</param>
         /// <param name="port">Push Notification Gateway Port</param>
-        /// <param name="p12File">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+        /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
         public NotificationChannel(string host, int port, byte[] p12FileBytes)
             : this(host, port, p12FileBytes, null)
         {
@@ -130,7 +130,7 @@ namespace JdSoft.Apple.Apns.Notifications
         /// Constructor
         /// </summary>
         /// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
-        /// <param name="p12File">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+        /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
         public NotificationChannel(bool sandbox, byte[] p12FileBytes)
             : this(sandbox ? hostSandbox : hostProduction, 2195, p12FileBytes, null)
         {
@@ -151,7 +151,7 @@ namespace JdSoft.Apple.Apns.Notifications
         /// Constructor
         /// </summary>
         /// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
-        /// <param name="p12File">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+        /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
         /// <param name="p12FilePassword">Password protecting the p12File</param>
         public NotificationChannel(bool sandbox, byte[] p12FileBytes, string p12FilePassword)
             : this(sandbox ? hostSandbox : hostProduction, 2195, p12FileBytes, p12FilePassword)
@@ -210,6 +210,9 @@ namespace JdSoft.Apple.Apns.Notifications
 			set;
 		}
 
+        /// <summary>
+        /// Gets or Sets the number of times to retry establishing a connection before giving up.
+        /// </summary>
 		public int ConnectRetries
 		{
 			get;
@@ -238,22 +241,36 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		#region Public Methods
 
+        /// <summary>
+        /// Send a notification to a connected channel immediately.  Must call EnsureConnection() before starting to send.
+        /// </summary>
+        /// <param name="notification">The Notification to send.</param>
 		public void Send(Notification notification)
 		{
 			apnsStream.Write(notification.ToBytes());
 		}
 
+        /// <summary>
+        /// Ensure that the connection is established before starting to send notifications.
+        /// </summary>
 		public void EnsureConnection()
 		{
 			while (!connected)
 				Reconnect();
 		}
 
+        /// <summary>
+        /// Force a reconnection, for example, if an exception is received, in which case Apple normally
+        /// closes the existing channel.
+        /// </summary>
 		public void ForceReconnect()
 		{
 			this.connected = false;
 		}
 
+        /// <summary>
+        /// Disposes of the NotificationChannel and all associated resources.
+        /// </summary>
 		public void Dispose()
 		{
 			try { apnsStream.Close(); }
