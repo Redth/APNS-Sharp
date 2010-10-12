@@ -6,6 +6,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Net.Sockets;
 using System.Net.Security;
 using System.Threading;
+using System.Diagnostics;
+using System.Net;
+using System.IO;
 
 namespace JdSoft.Apple.Apns.Notifications
 {
@@ -241,13 +244,130 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		#region Public Methods
 
+        public void SendNotifications(Notification[] notifications)
+        {
+            NotificationBatch batch = new NotificationBatch(this, notifications);
+            bool complete = false;
+            while(!complete)
+                complete = batch.SendMessages();
+			batch.Complete();
+        }
+
+        class NotificationBatch
+		{
+			private NotificationChannel channel;
+            private Notification[] notifications;
+			private List<NotificationDeliveryError> errors;
+			private ManualResetEvent mre = new ManualResetEvent(false);
+			private byte[] readBuffer;
+			private int current;
+			private bool faulted;
+
+            internal NotificationBatch(NotificationChannel channel, Notification[] notifications)
+            {
+                this.channel = channel;
+				this.notifications = notifications;
+				this.errors = new List<NotificationDeliveryError>();
+                this.readBuffer = new byte[6];
+                this.current = 0;
+            }
+
+			internal bool SendMessages()
+			{
+				faulted = false;
+				channel.EnsureConnection();
+				mre.Reset();
+				IAsyncResult ar = this.channel.apnsStream.BeginRead(this.readBuffer, 0, 6, new AsyncCallback(OnAsyncRead), null);
+				while (!faulted && current < notifications.Length)
+				{
+					Notification notification = notifications[current];
+					byte[] notificationBytes = null;
+
+					try
+					{
+						notificationBytes = notification.ToBytes(current);
+					}
+					catch (Exception x)
+					{
+						errors.Add(new NotificationDeliveryError(x, notification));
+						current++;
+						continue;
+					}
+
+					try
+					{
+						if (!faulted)
+						{
+							this.channel.apnsStream.Write(notificationBytes);
+							Console.WriteLine("Sent {0}", notification.DeviceToken);
+							current++;
+						}
+					}
+					catch (IOException)
+					{
+					}
+					catch (ObjectDisposedException)
+					{
+					}
+				}
+				if (!ar.IsCompleted)
+				{
+					// Give Apple a chance to let us know something went wrong
+					ar.AsyncWaitHandle.WaitOne(500);
+					if (!ar.IsCompleted)
+					{
+						// Dispose the channel, which will force the async callback,
+						// resulting in an ObjectDisposedException on EndRead.
+						channel.apnsStream.Dispose();
+					}
+				}
+				mre.WaitOne();
+				return !faulted;
+			}
+
+			private void OnAsyncRead(IAsyncResult ar)
+			{
+				try
+				{
+					if (channel.apnsStream.EndRead(ar) == 6 && readBuffer[0] == 8)
+					{
+						DeliveryErrorType error = (DeliveryErrorType)readBuffer[1];
+						faulted = true;
+						int index = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(readBuffer, 2));
+						Notification faultedNotification = notifications[index];
+						errors.Add(new NotificationDeliveryError(error, faultedNotification));
+						current = index + 1;
+						channel.ForceReconnect();
+					}
+				}
+				catch (ObjectDisposedException)
+				{
+					// This is how we "cancel" the asynchronous read, so just make sure
+					// the channel must reconnect to try again.
+					channel.ForceReconnect();
+				}
+				catch (Exception x)
+				{
+					faulted = true;
+					Console.WriteLine(x.Message);
+				}
+				mre.Set();
+			}
+
+			internal void Complete()
+			{
+				if (this.errors.Count > 0)
+					throw new NotificationBatchException(this.errors);
+			}
+        }
+
         /// <summary>
         /// Send a notification to a connected channel immediately.  Must call EnsureConnection() before starting to send.
         /// </summary>
         /// <param name="notification">The Notification to send.</param>
 		public void Send(Notification notification)
 		{
-			apnsStream.Write(notification.ToBytes());
+            apnsStream.Write(notification.ToBytes());
 		}
 
         /// <summary>

@@ -63,7 +63,9 @@
     <Compile Include="BadDeviceTokenException.cs" />
     <Compile Include="NotificationAlert.cs" />
     <Compile Include="Notification.cs" />
+    <Compile Include="NotificationBatchException.cs" />
     <Compile Include="NotificationChannel.cs" />
+    <Compile Include="NotificationDeliveryError.cs" />
     <Compile Include="NotificationException.cs" />
     <Compile Include="NotificationLengthException.cs" />
     <Compile Include="NotificationConnection.cs" />

@@ -66,27 +66,28 @@ namespace JdSoft.Apple.Apns.Notifications
 		{
 			return Payload.ToJson();
 		}
-		
 
-		public byte[] ToBytes()
+
+        public byte[] ToBytes()
+        {
+            return ToBytes(0);
+        }
+
+		internal byte[] ToBytes(int identifier)
 		{
-            // Without reading the response which would make any identifier useful, it seems silly to
-            // expose the value in the object model, although that would be easy enough to do. For
-            // now we'll just use zero.
-            int identifier = 0;
-            byte[] identifierBytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(identifier));
+			byte[] identifierBytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(identifier));
 
-            // APNS will not store-and-forward a notification with no expiry, so set it one year in the future
-            // if the client does not provide it.
-            int expiryTimeStamp = -1;
-            if (Expiration != DoNotStore)
-            {
-                DateTime concreteExpireDateUtc = (Expiration ?? DateTime.UtcNow.AddMonths(1)).ToUniversalTime();
-                TimeSpan epochTimeSpan = concreteExpireDateUtc - UNIX_EPOCH;
-                expiryTimeStamp = (int)epochTimeSpan.TotalSeconds;
-            }
+			// APNS will not store-and-forward a notification with no expiry, so set it one year in the future
+			// if the client does not provide it.
+			int expiryTimeStamp = -1;
+			if (Expiration != DoNotStore)
+			{
+				DateTime concreteExpireDateUtc = (Expiration ?? DateTime.UtcNow.AddMonths(1)).ToUniversalTime();
+				TimeSpan epochTimeSpan = concreteExpireDateUtc - UNIX_EPOCH;
+				expiryTimeStamp = (int)epochTimeSpan.TotalSeconds;
+			}
 
-            byte[] expiry = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(expiryTimeStamp));
+			byte[] expiry = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(expiryTimeStamp));
 
 			byte[] deviceToken = new byte[DeviceToken.Length / 2];
 			for (int i = 0; i < deviceToken.Length; i++)
@@ -94,7 +95,7 @@ namespace JdSoft.Apple.Apns.Notifications
 
 			if (deviceToken.Length != DEVICE_TOKEN_BINARY_SIZE)
 				throw new BadDeviceTokenException(DeviceToken);
-			
+
 
 			byte[] deviceTokenSize = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(Convert.ToInt16(deviceToken.Length)));
 
@@ -125,17 +126,18 @@ namespace JdSoft.Apple.Apns.Notifications
 			int bufferSize = sizeof(Byte) + deviceTokenSize.Length + deviceToken.Length + payloadSize.Length + payload.Length;
 			byte[] buffer = new byte[bufferSize];
 
-            List<byte[]> notificationParts = new List<byte[]>();
+			List<byte[]> notificationParts = new List<byte[]>();
 
-            notificationParts.Add(new byte[] { 0x01 }); // Enhanced notification format command
-            notificationParts.Add(identifierBytes);
-            notificationParts.Add(expiry);
-            notificationParts.Add(deviceTokenSize);
-            notificationParts.Add(deviceToken);
-            notificationParts.Add(payloadSize);
-            notificationParts.Add(payload);
+			// Enhanced notification format command
+			notificationParts.Add(new byte[] { 0x01 });
+			notificationParts.Add(identifierBytes);
+			notificationParts.Add(expiry);
+			notificationParts.Add(deviceTokenSize);
+			notificationParts.Add(deviceToken);
+			notificationParts.Add(payloadSize);
+			notificationParts.Add(payload);
 
-            return BuildBufferFrom(notificationParts);
+			return BuildBufferFrom(notificationParts);
 		}
 
         private byte[] BuildBufferFrom(IList<byte[]> bufferParts)
