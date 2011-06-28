@@ -17,6 +17,8 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		public string Sound { get; set; }
 
+		public bool HideActionButton { get; set; }
+
 		public Dictionary<string, object[]> CustomItems
 		{
 			get;
@@ -25,18 +27,21 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		public NotificationPayload()
 		{
+			HideActionButton = false;
 			Alert = new NotificationAlert();
 			CustomItems = new Dictionary<string, object[]>();
 		}
 
 		public NotificationPayload(string alert)
 		{
+			HideActionButton = false;
 			Alert = new NotificationAlert() { Body = alert };
 			CustomItems = new Dictionary<string, object[]>();
 		}
 
 		public NotificationPayload(string alert, int badge)
 		{
+			HideActionButton = false;
 			Alert = new NotificationAlert() { Body = alert };
 			Badge = badge;
 			CustomItems = new Dictionary<string, object[]>();
@@ -44,6 +49,7 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		public NotificationPayload(string alert, int badge, string sound)
 		{
+			HideActionButton = false;
 			Alert = new NotificationAlert() { Body = alert };
 			Badge = badge;
 			Sound = sound;
@@ -67,7 +73,8 @@ namespace JdSoft.Apple.Apns.Notifications
 				if (!string.IsNullOrEmpty(this.Alert.Body)
 					&& string.IsNullOrEmpty(this.Alert.LocalizedKey)
 					&& string.IsNullOrEmpty(this.Alert.ActionLocalizedKey)
-					&& (this.Alert.LocalizedArgs == null || this.Alert.LocalizedArgs.Count <= 0))
+					&& (this.Alert.LocalizedArgs == null || this.Alert.LocalizedArgs.Count <= 0)
+					&& !this.HideActionButton)
 				{
 					aps["alert"] = new JValue(this.Alert.Body);
 				}
@@ -84,9 +91,11 @@ namespace JdSoft.Apple.Apns.Notifications
 					if (!string.IsNullOrEmpty(this.Alert.Body))
 						jsonAlert["body"] = new JValue(this.Alert.Body);
 
-					if (!string.IsNullOrEmpty(this.Alert.ActionLocalizedKey))
+					if (this.HideActionButton)
+						jsonAlert["action-loc-key"] = new JValue((string)null);
+					else if (!string.IsNullOrEmpty(this.Alert.ActionLocalizedKey))
 						jsonAlert["action-loc-key"] = new JValue(this.Alert.ActionLocalizedKey);
-
+					
 					aps["alert"] = jsonAlert;
 				}
 			}
