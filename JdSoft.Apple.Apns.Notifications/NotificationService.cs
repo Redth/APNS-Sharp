@@ -269,6 +269,15 @@ namespace JdSoft.Apple.Apns.Notifications
 			get;
 			private set;
 		}
+
+		/// <summary>
+		/// For whatever use you please :)
+		/// </summary>
+		public object Tag
+		{
+			get;
+			set;
+		}
 				
 		/// <summary>
 		/// Gets or Sets the number of Apns Connections in use.  Changing this property will dynamically change the number of connections in use.  If it is decreased, connections will be Closed (waiting for the Queue to be Emptied first), or if raised, new connections will be added.

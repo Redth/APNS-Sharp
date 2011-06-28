@@ -14,6 +14,15 @@ namespace JdSoft.Apple.Apns.Notifications
 		public string DeviceToken { get; set; }
 		public NotificationPayload Payload { get; set; }
 
+		/// <summary>
+		/// For whatever use you please :)
+		/// </summary>
+		public object Tag
+		{
+			get;
+			set;
+		}
+
         /// <summary>
         /// The expiration date after which Apple will no longer store and forward this push notification.
         /// If no value is provided, an assumed value of one year from now is used.  If you do not wish
@@ -51,15 +60,6 @@ namespace JdSoft.Apple.Apns.Notifications
 
 			DeviceToken = deviceToken;
 			Payload = payload;
-		}
-
-		/// <summary>
-		/// Object for storing state.  This does not affect the actual notification!
-		/// </summary>
-		public object Tag
-		{
-			get;
-			set;
 		}
 
 		public override string ToString()

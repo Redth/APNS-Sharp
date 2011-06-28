@@ -209,6 +209,15 @@ namespace JdSoft.Apple.Apns.Notifications
 		}
 
 		/// <summary>
+		/// For whatever use you please :)
+		/// </summary>
+		public object Tag
+		{
+			get;
+			set;
+		}
+
+		/// <summary>
 		/// Gets the number of notifications currently in the queue
 		/// </summary>
 		public int QueuedNotificationsCount

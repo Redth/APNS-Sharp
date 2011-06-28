@@ -107,6 +107,14 @@ namespace JdSoft.Apple.AppStore
 			set;
 		}
 
+		/// <summary>
+		/// For whatever use you please :)
+		/// </summary>
+		public object Tag
+		{
+			get;
+			set;
+		}
 		#endregion Properties
 	}
 }

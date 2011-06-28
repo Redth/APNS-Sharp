@@ -37,5 +37,14 @@ namespace JdSoft.Apple.Apns.Feedback
 			get;
 			set;
 		}
+
+		/// <summary>
+		/// For whatever use you please :)
+		/// </summary>
+		public object Tag
+		{
+			get;
+			set;
+		}
 	}
 }
