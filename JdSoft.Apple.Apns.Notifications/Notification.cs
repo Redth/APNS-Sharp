@@ -56,7 +56,7 @@ namespace JdSoft.Apple.Apns.Notifications
 			return Payload.ToJson();
 		}
 
-        public String hexEncode(byte[] data)
+        public static String HexEncode(byte[] data)
         {
             int len = data.Length;
 
