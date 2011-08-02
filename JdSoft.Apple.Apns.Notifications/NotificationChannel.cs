@@ -285,7 +285,7 @@ namespace JdSoft.Apple.Apns.Notifications
 
 					try
 					{
-						notificationBytes = notification.ToBytes(current);
+						notificationBytes = notification.ToBytes();
 					}
 					catch (Exception x)
 					{
