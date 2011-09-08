@@ -5,11 +5,14 @@ using System.Text;
 
 namespace JdSoft.Apple.Apns.Notifications
 {
-	public class NotificationService : IDisposable
+    using System.IO;
+
+    public class NotificationService : IDisposable
 	{
 		#region Constants
 		private const string hostSandbox = "gateway.sandbox.push.apple.com";
 		private const string hostProduction = "gateway.push.apple.com";
+        private const int apnsPort = 2195;
 		#endregion
 
 		#region Delegates and Events
@@ -111,6 +114,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		#endregion
 
 		#region Constructors
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -119,16 +123,8 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(string host, int port, string p12File, int connections)
+            : this(host, port, p12File, null, connections)
 		{
-			this.SendRetries = 1;
-			closing = false;
-			disposing = false;
-			Host = host;
-			Port = port;
-			P12File = p12File;
-			P12FilePassword = null;
-			DistributionType = NotificationServiceDistributionType.Sequential;
-			Connections = connections;
 		}
 
 		/// <summary>
@@ -159,16 +155,8 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(bool sandbox, string p12File, int connections)
+            : this(sandbox ? hostSandbox : hostProduction, apnsPort, p12File, null, connections)
 		{
-			this.SendRetries = 1;
-			closing = false;
-			disposing = false;
-			Host = sandbox ? hostSandbox : hostProduction;
-			Port = 2195;
-			P12File = p12File;
-			P12FilePassword = null;
-			DistributionType = NotificationServiceDistributionType.Sequential;
-			Connections = connections;
 		}
 
 		/// <summary>
@@ -178,18 +166,12 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		/// <param name="p12FilePassword">Password protecting the p12File</param>
 		/// <param name="connections">Number of Apns Connections to start with</param>
-		public NotificationService(bool sandbox, string p12File, string p12FilePassword, int connections)
-		{
-			this.SendRetries = 1;
-			closing = false;
-			disposing = false;
-			Host = sandbox ? hostSandbox : hostProduction;
-			Port = 2195;
-			P12File = p12File;
-			P12FilePassword = p12FilePassword;
-			DistributionType = NotificationServiceDistributionType.Sequential;
-			Connections = connections;
-		}
+        public NotificationService(bool sandbox, string p12File, string p12FilePassword, int connections) :
+            this(sandbox ? hostSandbox : hostProduction, apnsPort, p12File, p12FilePassword, connections)
+        {
+
+        }
+
 		#endregion
 
 		#region Properties
