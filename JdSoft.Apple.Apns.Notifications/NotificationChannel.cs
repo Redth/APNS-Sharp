@@ -191,10 +191,11 @@ namespace JdSoft.Apple.Apns.Notifications
             ConnectRetries = 6;
 
             //Need to load the private key seperately from apple
-            if (string.IsNullOrEmpty(p12FilePassword))
-                certificate = new X509Certificate2(p12FileBytes);
-            else
-                certificate = new X509Certificate2(p12FileBytes, p12FilePassword);
+            // Fixed by danielgindi@gmail.com :
+            //      The default is UserKeySet, which has caused internal encryption errors,
+            //      Because of lack of permissions on most hosting services.
+            //      So MachineKeySet should be used instead.
+            certificate = new X509Certificate2(p12FileBytes, p12FilePassword ?? "", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
 
             certificates = new X509CertificateCollection();
             certificates.Add(certificate);
