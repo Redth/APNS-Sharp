@@ -83,7 +83,11 @@ namespace JdSoft.Apple.Apns.Feedback
             Id = System.Guid.NewGuid().ToString("N");
             Host = host;
             Port = port;
-            certificate = new X509Certificate2(p12FileBytes);
+            // Fixed by danielgindi@gmail.com :
+ 	    //      The default is UserKeySet, which has caused internal encryption errors,
+ 	    //      Because of lack of permissions on most hosting services.
+ 	    //      So MachineKeySet should be used instead.
+            certificate = new X509Certificate2(p12FileBytes, "", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
             ConnectAttempts = 3;
             ReconnectDelay = 10000;
         }
@@ -118,7 +122,11 @@ namespace JdSoft.Apple.Apns.Feedback
             Id = System.Guid.NewGuid().ToString("N");
             Host = host;
             Port = port;
-            certificate = new X509Certificate2(p12FileBytes, p12FilePassword);
+            // Fixed by danielgindi@gmail.com :
+ 	    //      The default is UserKeySet, which has caused internal encryption errors,
+ 	    //      Because of lack of permissions on most hosting services.
+ 	    //      So MachineKeySet should be used instead.
+            certificate = new X509Certificate2(p12FileBytes, p12FilePassword ?? "", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
             P12FilePassword = p12FilePassword;
             ConnectAttempts = 3;
             ReconnectDelay = 10000;
@@ -148,7 +156,11 @@ namespace JdSoft.Apple.Apns.Feedback
             Id = System.Guid.NewGuid().ToString("N");
             Host = sandbox ? hostSandbox : hostProduction;
             Port = 2196;
-            certificate = new X509Certificate2(p12FileBytes);
+            // Fixed by danielgindi@gmail.com :
+ 	    //      The default is UserKeySet, which has caused internal encryption errors,
+ 	    //      Because of lack of permissions on most hosting services.
+ 	    //      So MachineKeySet should be used instead.
+            certificate = new X509Certificate2(p12FileBytes, "", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
             ConnectAttempts = 3;
         }
 
@@ -180,7 +192,11 @@ namespace JdSoft.Apple.Apns.Feedback
             Id = System.Guid.NewGuid().ToString("N");
             Host = sandbox ? hostSandbox : hostProduction;
             Port = 2196;
-            certificate = new X509Certificate2(p12FileBytes, p12FilePassword);
+            // Fixed by danielgindi@gmail.com :
+ 	    //      The default is UserKeySet, which has caused internal encryption errors,
+ 	    //      Because of lack of permissions on most hosting services.
+ 	    //      So MachineKeySet should be used instead.
+            certificate = new X509Certificate2(p12FileBytes, p12FilePassword ?? "", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
             P12FilePassword = p12FilePassword;
             ConnectAttempts = 3;
             ReconnectDelay = 10000;
@@ -209,13 +225,14 @@ namespace JdSoft.Apple.Apns.Feedback
 			encoding = Encoding.ASCII;
 
             // certificate will already be set if one of the constructors that takes a byte array was used.
-            if (certificate == null)
-            {
-                if (string.IsNullOrEmpty(P12FilePassword))
-                    certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File));
-                else
-                    certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File), P12FilePassword);
-            }
+ 	    if (certificate == null)
+ 	    {
+                // Fixed by danielgindi@gmail.com :
+ 	        //      The default is UserKeySet, which has caused internal encryption errors,
+ 	        //      Because of lack of permissions on most hosting services.
+ 	        //      So MachineKeySet should be used instead.
+                certificate = new X509Certificate2(System.IO.File.ReadAllBytes(P12File), P12FilePassword ?? "", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+ 	    }
 
 			certificates = new X509CertificateCollection();
 			certificates.Add(certificate);
