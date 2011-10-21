@@ -13,6 +13,8 @@ namespace JdSoft.Apple.Apns.Notifications
 	{
 		public NotificationAlert Alert { get; set; }
 
+		public int? ContentAvailable { get; set; }
+
 		public int? Badge { get; set; }
 
 		public string Sound { get; set; }
@@ -105,7 +107,9 @@ namespace JdSoft.Apple.Apns.Notifications
 
 			if (!string.IsNullOrEmpty(this.Sound))
 				aps["sound"] = new JValue(this.Sound);
-					
+
+			if (this.ContentAvailable.HasValue)
+				aps["content-available"] = new JValue(this.ContentAvailable.Value);
 
 			json["aps"] = aps;
 
