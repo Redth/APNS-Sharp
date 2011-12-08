@@ -126,7 +126,20 @@ namespace JdSoft.Apple.Apns.Notifications
 			start();
 		}
 
-		/// <summary>
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="host">Push Notification Gateway Host</param>
+        /// <param name="port">Push Notification Gateway Port</param>
+        /// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys, as a byte array</param>
+        /// <param name="p12FilePassword">Password protecting the p12File</param>
+        public NotificationConnection( string host, int port, byte[] p12FileBytes, string p12FilePassword )
+        {
+            apnsChannel = new NotificationChannel( host, port, p12FileBytes, p12FilePassword );
+            start();
+        }
+
+        /// <summary>
 		/// Constructor
 		/// </summary>
 		/// <param name="host">Push Notification Gateway Host</param>
