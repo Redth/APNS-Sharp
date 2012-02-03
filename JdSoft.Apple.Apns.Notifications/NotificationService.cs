@@ -145,19 +145,6 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// </summary>
 		/// <param name="host">Push Notification Gateway Host</param>
 		/// <param name="port">Push Notification Gateway Port</param>
-		/// <param name="p12FileStream">Stream to PKCS12 .p12 or .pfx file containing Public and Private Keys</param>
-		/// <param name="p12FilePassword">Password protecting the p12File</param>
-		/// <param name="connections">Number of Apns Connections to start with</param>
-		public NotificationService(string host, int port, Stream p12FileStream, string p12FilePassword, int connections)
-			: this(host, port, NotificationService.getAllBytesFromStream(p12FileStream), p12FilePassword, connections)
-		{
-		}
-
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="host">Push Notification Gateway Host</param>
-		/// <param name="port">Push Notification Gateway Port</param>
 		/// <param name="p12FileBytes">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		/// <param name="p12FilePassword">Password protecting the p12File</param>
 		/// <param name="connections">Number of Apns Connections to start with</param>
@@ -207,6 +194,19 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(bool sandbox, byte[] p12FileBytes, string p12FilePassword, int connections) :
 			this(sandbox ? hostSandbox : hostProduction, apnsPort, p12FileBytes, p12FilePassword, connections)
+		{
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="host">Push Notification Gateway Host</param>
+		/// <param name="port">Push Notification Gateway Port</param>
+		/// <param name="p12FileStream">Stream to PKCS12 .p12 or .pfx file containing Public and Private Keys</param>
+		/// <param name="p12FilePassword">Password protecting the p12File</param>
+		/// <param name="connections">Number of Apns Connections to start with</param>
+		public NotificationService(bool sandbox, Stream p12FileStream, string p12FilePassword, int connections)
+			: this(sandbox ? hostSandbox : hostProduction, apnsPort, getAllBytesFromStream(p12FileStream), p12FilePassword, connections)
 		{
 		}
 
