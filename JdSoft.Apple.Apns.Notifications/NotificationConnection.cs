@@ -397,8 +397,6 @@ namespace JdSoft.Apple.Apns.Notifications
 											onNotificationTooLong(this, nlex);
 									}
 
-								    string txtAlert = string.Empty;
-
 								    var onNotificationSuccess = NotificationSuccess;
 								    if (onNotificationSuccess != null)
 										onNotificationSuccess(this, notification);
