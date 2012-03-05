@@ -19,14 +19,10 @@ namespace JdSoft.Apple.Apns.Notifications
 
 		public T Dequeue()
 		{
-			T result = default(T);
-
 			lock (lockObj)
 			{
-				result = queue.Dequeue();
+				return queue.Dequeue();
 			}
-
-			return result;
 		}
 
 		public void Enqueue(T item)
