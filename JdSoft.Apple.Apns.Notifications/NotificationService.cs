@@ -399,53 +399,61 @@ namespace JdSoft.Apple.Apns.Notifications
 		#region Private Methods
 		void newCon_NotificationSuccess(object sender, Notification notification)
 		{
-			if (this.NotificationSuccess != null)
-				this.NotificationSuccess(sender, notification);
+		    var onNotificationSuccess = NotificationSuccess;
+		    if (onNotificationSuccess != null)
+				NotificationSuccess(sender, notification);
 		}
 
-		void newCon_NotificationTooLong(object sender, NotificationLengthException ex)
+        void newCon_NotificationTooLong(object sender, NotificationLengthException ex)
 		{
-			if (this.NotificationTooLong != null)
-				this.NotificationTooLong(sender, ex);
+		    var onNotificationTooLong = NotificationTooLong;
+		    if (onNotificationTooLong != null)
+				NotificationTooLong(sender, ex);
 		}
 
-		void newCon_BadDeviceToken(object sender, BadDeviceTokenException ex)
+        void newCon_BadDeviceToken(object sender, BadDeviceTokenException ex)
 		{
-			if (this.BadDeviceToken != null)
-				this.BadDeviceToken(this, ex);
+		    var onBadDeviceToken = BadDeviceToken;
+		    if (onBadDeviceToken != null)
+				BadDeviceToken(this, ex);
 		}
 
-		void newCon_NotificationFailed(object sender, Notification failed)
+        void newCon_NotificationFailed(object sender, Notification failed)
 		{
-			if (this.NotificationFailed != null)
-				this.NotificationFailed(sender, failed);
+		    var onNotificationFailed = NotificationFailed;
+		    if (onNotificationFailed != null)
+				NotificationFailed(sender, failed);
 		}
 
-		void newCon_Error(object sender, Exception ex)
+        void newCon_Error(object sender, Exception ex)
 		{
-			if (this.Error != null)
-				this.Error(sender, ex);
+		    var onError = Error;
+		    if (onError != null)
+				Error(sender, ex);
 		}
 
-		void newCon_Disconnected(object sender)
+        void newCon_Disconnected(object sender)
 		{
-			if (this.Disconnected != null)
-				this.Disconnected(sender);
+		    var onDisconnected = Disconnected;
+		    if (onDisconnected != null)
+				Disconnected(sender);
 		}
 
-		void newCon_Connected(object sender)
+        void newCon_Connected(object sender)
 		{
-			if (this.Connected != null)
-				this.Connected(sender);
+		    var onConnected = Connected;
+		    if (onConnected != null)
+				Connected(sender);
 		}
 
-		void newCon_Connecting(object sender)
+        void newCon_Connecting(object sender)
 		{
-			if (this.Connecting != null)
-				this.Connecting(sender);
+		    var onConnecting = Connecting;
+		    if (onConnecting != null)
+				onConnecting(sender);
 		}
 
-		private bool queueSequential(Notification notification)
+        private bool queueSequential(Notification notification)
 		{
 			if (notificationConnections.Count <= sequential && sequential > 0)
 				sequential = 0;
