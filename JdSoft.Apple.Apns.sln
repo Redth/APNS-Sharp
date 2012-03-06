@@ -15,7 +15,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Notificat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JdSoft.Apple.Apns.Notifications.JsonTest", "JdSoft.Apple.Apns.Notifications.JsonTest\JdSoft.Apple.Apns.Notifications.JsonTest.csproj", "{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{BA4010CC-021A-4968-9867-145F7CB17D8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Notifications", "Tests.Notifications\Tests.Notifications.csproj", "{0AD797AA-2793-4E8A-A481-60B89DE36680}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{85551CB3-03EB-4A50-8104-9810A38B860D}"
+	ProjectSection(SolutionItems) = preProject
+		JdSoft.Apple.Apns.vsmdi = JdSoft.Apple.Apns.vsmdi
+		Local.testsettings = Local.testsettings
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = JdSoft.Apple.Apns.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -49,9 +63,17 @@ Global
 		{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A7ACE5F-EF8A-4C5E-87B5-CBBFA432DFE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AD797AA-2793-4E8A-A481-60B89DE36680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AD797AA-2793-4E8A-A481-60B89DE36680}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AD797AA-2793-4E8A-A481-60B89DE36680}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AD797AA-2793-4E8A-A481-60B89DE36680}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0AD797AA-2793-4E8A-A481-60B89DE36680} = {BA4010CC-021A-4968-9867-145F7CB17D8E}
+		{85551CB3-03EB-4A50-8104-9810A38B860D} = {BA4010CC-021A-4968-9867-145F7CB17D8E}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = JdSoft.Apple.Apns.Notifications\JdSoft.Apple.Apns.Notifications.csproj

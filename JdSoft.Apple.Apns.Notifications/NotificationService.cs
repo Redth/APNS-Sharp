@@ -468,11 +468,11 @@ namespace JdSoft.Apple.Apns.Notifications
 
         private bool queueSequential(Notification notification)
 		{
-			if (notificationConnections.Count <= sequential && sequential > 0)
+			if (sequential > notificationConnections.Count - 1)
 				sequential = 0;
 
 			if (notificationConnections[sequential] != null)
-				return notificationConnections[sequential].QueueNotification(notification);
+				return notificationConnections[sequential++].QueueNotification(notification);
 			
 			return false;
 		}
