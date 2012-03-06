@@ -197,6 +197,19 @@ namespace JdSoft.Apple.Apns.Notifications
         {
         }
 
+		/// <summary>
+		/// Constructor	
+		/// </summary>
+		/// <param name="host">Push Notification Gateway Host</param>
+		/// <param name="port">Push Notification Gateway Port</param>
+		/// <param name="p12FileStream">Stream to PKCS12 .p12 or .pfx file containing Public and Private Keys</param>
+		/// <param name="p12FilePassword">Password protecting the p12File</param>
+		/// <param name="connections">Number of Apns Connections to start with</param>
+		public NotificationService(bool sandbox, Stream p12FileStream, string p12FilePassword, int connections) :
+			this(sandbox ? hostSandbox : hostProduction, apnsPort, getAllBytesFromStream(p12FileStream), p12FilePassword, connections)
+		{
+		}
+
 		#endregion
 
 		#region Properties
@@ -472,6 +485,21 @@ namespace JdSoft.Apple.Apns.Notifications
 				return notificationConnections[index].QueueNotification(notification);
 
 			return false;
+		}
+
+		private static byte[] getAllBytesFromStream(Stream s)
+		{
+			byte[] buffer = new byte[16 * 1024];
+			
+			using (MemoryStream ms = new MemoryStream())
+			{
+				int read;	
+				
+				while ((read = s.Read(buffer, 0, buffer.Length)) > 0)
+					ms.Write(buffer, 0, read);
+			
+				return ms.ToArray();
+			}
 		}
 		#endregion
 	}
