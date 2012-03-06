@@ -5,14 +5,14 @@ using System.Text;
 
 namespace JdSoft.Apple.Apns.Notifications
 {
-    using System.IO;
+	using System.IO;
 
-    public class NotificationService : IDisposable
+	public class NotificationService : IDisposable
 	{
 		#region Constants
 		private const string hostSandbox = "gateway.sandbox.push.apple.com";
 		private const string hostProduction = "gateway.push.apple.com";
-        private const int apnsPort = 2195;
+		private const int apnsPort = 2195;
 		#endregion
 
 		#region Delegates and Events
@@ -123,43 +123,43 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(string host, int port, string p12File, int connections)
-            : this(host, port, p12File, null, connections)
+			: this(host, port, p12File, null, connections)
 		{
 		}
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="host">Push Notification Gateway Host</param>
-        /// <param name="port">Push Notification Gateway Port</param>
-        /// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
-        /// <param name="p12FilePassword">Password protecting the p12File</param>
-        /// <param name="connections">Number of Apns Connections to start with</param>
-        public NotificationService( string host, int port, string p12File, string p12FilePassword, int connections )
-            : this( host, port, System.IO.File.ReadAllBytes( p12File ), p12FilePassword, connections )
-        {
-        }
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="host">Push Notification Gateway Host</param>
+		/// <param name="port">Push Notification Gateway Port</param>
+		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+		/// <param name="p12FilePassword">Password protecting the p12File</param>
+		/// <param name="connections">Number of Apns Connections to start with</param>
+		public NotificationService(string host, int port, string p12File, string p12FilePassword, int connections)
+			: this(host, port, System.IO.File.ReadAllBytes(p12File), p12FilePassword, connections)
+		{
+		}
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="host">Push Notification Gateway Host</param>
-        /// <param name="port">Push Notification Gateway Port</param>
-        /// <param name="p12FileBytes">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
-        /// <param name="p12FilePassword">Password protecting the p12File</param>
-        /// <param name="connections">Number of Apns Connections to start with</param>
-        public NotificationService( string host, int port, byte[] p12FileBytes, string p12FilePassword, int connections )
-        {
-            this.SendRetries = 1;
-            closing = false;
-            disposing = false;
-            Host = host;
-            Port = port;
-            P12FileBytes = p12FileBytes;
-            P12FilePassword = p12FilePassword;
-            DistributionType = NotificationServiceDistributionType.Sequential;
-            Connections = connections;
-        }
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="host">Push Notification Gateway Host</param>
+		/// <param name="port">Push Notification Gateway Port</param>
+		/// <param name="p12FileBytes">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+		/// <param name="p12FilePassword">Password protecting the p12File</param>
+		/// <param name="connections">Number of Apns Connections to start with</param>
+		public NotificationService(string host, int port, byte[] p12FileBytes, string p12FilePassword, int connections)
+		{
+			this.SendRetries = 1;
+			closing = false;
+			disposing = false;
+			Host = host;
+			Port = port;
+			P12FileBytes = p12FileBytes;
+			P12FilePassword = p12FilePassword;
+			DistributionType = NotificationServiceDistributionType.Sequential;
+			Connections = connections;
+		}
 
 		/// <summary>
 		/// Constructor
@@ -168,7 +168,7 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		/// <param name="connections">Number of Apns Connections to start with</param>
 		public NotificationService(bool sandbox, string p12File, int connections)
-            : this(sandbox ? hostSandbox : hostProduction, apnsPort, p12File, null, connections)
+			: this(sandbox ? hostSandbox : hostProduction, apnsPort, p12File, null, connections)
 		{
 		}
 
@@ -179,23 +179,36 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
 		/// <param name="p12FilePassword">Password protecting the p12File</param>
 		/// <param name="connections">Number of Apns Connections to start with</param>
-        public NotificationService(bool sandbox, string p12File, string p12FilePassword, int connections) :
-            this(sandbox ? hostSandbox : hostProduction, apnsPort, p12File, p12FilePassword, connections)
-        {
+		public NotificationService(bool sandbox, string p12File, string p12FilePassword, int connections) :
+			this(sandbox ? hostSandbox : hostProduction, apnsPort, p12File, p12FilePassword, connections)
+		{
 
-        }
+		}
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
-        /// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
-        /// <param name="p12FilePassword">Password protecting the p12File</param>
-        /// <param name="connections">Number of Apns Connections to start with</param>
-        public NotificationService( bool sandbox, byte[] p12FileBytes, string p12FilePassword, int connections ) :
-            this( sandbox ? hostSandbox : hostProduction, apnsPort, p12FileBytes, p12FilePassword, connections )
-        {
-        }
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
+		/// <param name="p12File">PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
+		/// <param name="p12FilePassword">Password protecting the p12File</param>
+		/// <param name="connections">Number of Apns Connections to start with</param>
+		public NotificationService(bool sandbox, byte[] p12FileBytes, string p12FilePassword, int connections) :
+			this(sandbox ? hostSandbox : hostProduction, apnsPort, p12FileBytes, p12FilePassword, connections)
+		{
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="host">Push Notification Gateway Host</param>
+		/// <param name="port">Push Notification Gateway Port</param>
+		/// <param name="p12FileStream">Stream to PKCS12 .p12 or .pfx file containing Public and Private Keys</param>
+		/// <param name="p12FilePassword">Password protecting the p12File</param>
+		/// <param name="connections">Number of Apns Connections to start with</param>
+		public NotificationService(bool sandbox, Stream p12FileStream, string p12FilePassword, int connections)
+			: this(sandbox ? hostSandbox : hostProduction, apnsPort, getAllBytesFromStream(p12FileStream), p12FilePassword, connections)
+		{
+		}
 
 		#endregion
 
@@ -285,7 +298,7 @@ namespace JdSoft.Apple.Apns.Notifications
 			get;
 			set;
 		}
-				
+
 		/// <summary>
 		/// Gets or Sets the number of Apns Connections in use.  Changing this property will dynamically change the number of connections in use.  If it is decreased, connections will be Closed (waiting for the Queue to be Emptied first), or if raised, new connections will be added.
 		/// </summary>
@@ -358,7 +371,7 @@ namespace JdSoft.Apple.Apns.Notifications
 			if (!disposing && !closing)
 			{
 				int tries = 0;
-				
+
 				while (tries < SendRetries && !queued)
 				{
 					if (DistributionType == NotificationServiceDistributionType.Sequential)
@@ -460,7 +473,7 @@ namespace JdSoft.Apple.Apns.Notifications
 
 			if (notificationConnections[sequential] != null)
 				return notificationConnections[sequential].QueueNotification(notification);
-			
+
 			return false;
 		}
 
@@ -472,6 +485,20 @@ namespace JdSoft.Apple.Apns.Notifications
 				return notificationConnections[index].QueueNotification(notification);
 
 			return false;
+		}
+
+		private static byte[] getAllBytesFromStream(Stream s)
+		{
+			byte[] buffer = new byte[16 * 1024];
+			using (MemoryStream ms = new MemoryStream())
+			{
+				int read;
+				while ((read = s.Read(buffer, 0, buffer.Length)) > 0)
+				{
+					ms.Write(buffer, 0, read);
+				}
+				return ms.ToArray();
+			}
 		}
 		#endregion
 	}
