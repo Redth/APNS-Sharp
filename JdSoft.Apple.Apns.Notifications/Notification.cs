@@ -85,22 +85,22 @@ namespace JdSoft.Apple.Apns.Notifications
 		public byte[] ToBytes()
 		{
             // Without reading the response which would make any identifier useful, it seems silly to
-	            // expose the value in the object model, although that would be easy enough to do. For
-	            // now we'll just use zero.
-	            int identifier = 0;
-                byte[] identifierBytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(identifier));
+	        // expose the value in the object model, although that would be easy enough to do. For
+	        // now we'll just use zero.
+	        int identifier = 0;
+            byte[] identifierBytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(identifier));
 	
-	            // APNS will not store-and-forward a notification with no expiry, so set it one year in the future
-	            // if the client does not provide it.
-	            int expiryTimeStamp = -1;
-	            if (Expiration != DoNotStore)
-	            {
-	                DateTime concreteExpireDateUtc = (Expiration ?? DateTime.UtcNow.AddMonths(1)).ToUniversalTime();
-	                TimeSpan epochTimeSpan = concreteExpireDateUtc - UNIX_EPOCH;
-	                expiryTimeStamp = (int)epochTimeSpan.TotalSeconds;
-	            }
+	        // APNS will not store-and-forward a notification with no expiry, so set it one year in the future
+	        // if the client does not provide it.
+	        int expiryTimeStamp = -1;
+	        if (Expiration != DoNotStore)
+	        {
+	            DateTime concreteExpireDateUtc = (Expiration ?? DateTime.UtcNow.AddMonths(1)).ToUniversalTime();
+	            TimeSpan epochTimeSpan = concreteExpireDateUtc - UNIX_EPOCH;
+	            expiryTimeStamp = (int)epochTimeSpan.TotalSeconds;
+	        }
 
-	            byte[] expiry = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(expiryTimeStamp));
+	        byte[] expiry = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(expiryTimeStamp));
 
 
 			byte[] deviceToken = new byte[DeviceToken.Length / 2];
