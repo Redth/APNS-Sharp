@@ -54,7 +54,8 @@ namespace JdSoft.Apple.AppStore
 		/// <returns></returns>
 		private static string ConvertReceiptToPost(string receipt)
 		{
-			string itunesDecodedReceipt = Encoding.UTF8.GetString(ReceiptVerification.ConvertAppStoreTokenToBytes(receipt.Replace("<", string.Empty).Replace(">", string.Empty))).Trim();
+			//string itunesDecodedReceipt = Encoding.UTF8.GetString(ReceiptVerification.ConvertAppStoreTokenToBytes(receipt.Replace("<", string.Empty).Replace(">", string.Empty))).Trim();
+			string itunesDecodedReceipt = receipt.Replace("<", string.Empty).Replace(">", string.Empty).Trim();
 			string encodedReceipt = Base64Encode(itunesDecodedReceipt);
 			return string.Format(@"{{""receipt-data"":""{0}""}}", encodedReceipt);
 		}
