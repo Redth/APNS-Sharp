@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace JdSoft.Apple.Apns.Notifications
@@ -149,14 +150,25 @@ namespace JdSoft.Apple.Apns.Notifications
         /// <param name="p12FilePassword">Password protecting the p12File</param>
         /// <param name="connections">Number of Apns Connections to start with</param>
         public NotificationService( string host, int port, byte[] p12FileBytes, string p12FilePassword, int connections )
+            : this( host, port, new X509Certificate2(p12FileBytes, p12FilePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable), connections )
+        {
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="host">Push Notification Gateway Host</param>
+        /// <param name="port">Push Notification Gateway Port</param>
+        /// <param name="certificate">X509 Certificate containing Public and Private Keys</param>
+        /// <param name="connections">Number of Apns Connections to start with</param>
+        public NotificationService( string host, int port, X509Certificate2 certificate, int connections )
         {
             this.SendRetries = 1;
             closing = false;
             disposing = false;
             Host = host;
             Port = port;
-            P12FileBytes = p12FileBytes;
-            P12FilePassword = p12FilePassword;
+            Certificate = certificate;
             DistributionType = NotificationServiceDistributionType.Sequential;
             Connections = connections;
         }
@@ -262,17 +274,6 @@ namespace JdSoft.Apple.Apns.Notifications
 		}
 
 		/// <summary>
-		/// Gets the PKCS12 .p12 or .pfx File being used
-		/// </summary>
-		public byte[] P12FileBytes
-		{
-			get;
-			private set;
-		}
-
-		private string P12FilePassword;
-
-		/// <summary>
 		/// Gets the Push Notification Gateway Host
 		/// </summary>
 		public string Host
@@ -285,6 +286,15 @@ namespace JdSoft.Apple.Apns.Notifications
 		/// Gets the Push Notification Gateway Port
 		/// </summary>
 		public int Port
+		{
+			get;
+			private set;
+		}
+
+		/// <summary>
+		/// Gets the Push Notification Certificate
+		/// </summary>
+		public X509Certificate2 Certificate
 		{
 			get;
 			private set;
@@ -322,7 +332,7 @@ namespace JdSoft.Apple.Apns.Notifications
 					//Need to add connections
 					for (int i = 0; i < difference; i++)
 					{
-						NotificationConnection newCon = new NotificationConnection(Host, Port, P12FileBytes, P12FilePassword);
+						NotificationConnection newCon = new NotificationConnection(Host, Port, Certificate);
 						newCon.SendRetries = SendRetries;
 						newCon.ReconnectDelay = ReconnectDelay;
 
