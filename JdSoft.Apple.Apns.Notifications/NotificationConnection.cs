@@ -126,6 +126,18 @@ namespace JdSoft.Apple.Apns.Notifications
 			start();
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="host">Push Notification Gateway Host</param>
+		/// <param name="port">Push Notification Gateway Port</param>
+		/// <param name="cert">X509 Certificate containing Public and Private Keys</param>
+		public NotificationConnection(string host, int port, X509Certificate2 cert)
+		{
+			apnsChannel = new NotificationChannel(host, port, cert);
+			start();
+		}
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -160,6 +172,17 @@ namespace JdSoft.Apple.Apns.Notifications
 		public NotificationConnection(bool sandbox, string p12File)
 		{
 			apnsChannel = new NotificationChannel(sandbox, p12File);
+			start();
+		}
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+		/// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
+		/// <param name="cert">X509 Certificate containing Public and Private Keys</param>
+		public NotificationConnection(bool sandbox, X509Certificate2 cert)
+		{
+			apnsChannel = new NotificationChannel(sandbox, cert);
 			start();
 		}
 
