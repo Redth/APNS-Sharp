@@ -328,6 +328,7 @@ namespace JdSoft.Apple.Apns.Notifications
 			apnsChannel.Disconnected += new NotificationChannel.OnDisconnected(OnChannelDisconnected);
 
 			workerThread = new Thread(new ThreadStart(workerMethod));
+			workerThread.IsBackground = true;
 			workerThread.Start();
 		}
 
