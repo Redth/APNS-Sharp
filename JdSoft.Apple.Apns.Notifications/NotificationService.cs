@@ -173,6 +173,17 @@ namespace JdSoft.Apple.Apns.Notifications
             Connections = connections;
         }
 
+	/// <summary>
+	/// Constructor
+	/// </summary>
+	/// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
+        /// <param name="certificate">X509 Certificate containing Public and Private Keys</param>
+	/// <param name="connections">Number of Apns Connections to start with</param>
+	public NotificationService(bool sandbox, X509Certificate2 certificate, int connections)
+            : this(sandbox ? hostSandbox : hostProduction, apnsPort, certificate, connections)
+	{
+	}
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
