@@ -1,5 +1,5 @@
-ATTENTION
-=========
+ATTENTION: THIS LIBRARY IS NOW OBSOLETE / DEPRECATED!
+=====================================================
 I've recently started a new project called [PushSharp](https://github.com/Redth/PushSharp/).  Its goal is to combine APNS-Sharp as well as C2DM-Sharp into a single project.  It takes some of the same great code from APNS-Sharp, and still allows you to easily send push notifications, but it also includes an optional abstraction layer for sending notifications to multiple platforms.  Please go check it out.  Once PushSharp is a bit more mature, this project will be deprecated.  For now I will not be adding any major new functionality to this library.  
 
 So go check out [PushSharp](https://github.com/Redth/PushSharp/)!  It's open source (under Apache 2.0), and a solid step forward for push notifications!
