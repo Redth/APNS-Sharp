@@ -154,6 +154,16 @@ namespace JdSoft.Apple.Apns.Notifications
         /// Constructor
         /// </summary>
         /// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
+        /// <param name="cert">X509 Certificate containing Public and Private Keys</param>
+        public NotificationChannel(bool sandbox, X509Certificate2 cert)
+            : this(sandbox ? hostSandbox : hostProduction, 2195, cert)
+        {
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="sandbox">Boolean flag indicating whether the default Sandbox or Production Host and Port should be used</param>
         /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
         /// <param name="p12FilePassword">Password protecting the p12File</param>
         public NotificationChannel(bool sandbox, byte[] p12FileBytes, string p12FilePassword)
@@ -176,11 +186,29 @@ namespace JdSoft.Apple.Apns.Notifications
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <remarks>
+        /// Need to load the private key seperately from apple
+        /// Fixed by danielgindi@gmail.com :
+        ///      The default is UserKeySet, which has caused internal encryption errors,
+        ///      Because of lack of permissions on most hosting services.
+        ///      So MachineKeySet should be used instead.
+        /// </remarks>
         /// <param name="host">Push Notification Gateway Host</param>
         /// <param name="port">Push Notification Gateway Port</param>
         /// <param name="p12FileBytes">Byte array representation of PKCS12 .p12 or .pfx File containing Public and Private Keys</param>
         /// <param name="p12FilePassword">Password protecting the p12File</param>
         public NotificationChannel(string host, int port, byte[] p12FileBytes, string p12FilePassword)
+            : this(host, port, new X509Certificate2(p12FileBytes, p12FilePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable))
+        {
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="host">Push Notification Gateway Host</param>
+        /// <param name="port">Push Notification Gateway Port</param>
+        /// <param name="cert">X509 Certificate containing Public and Private Keys</param>
+        public NotificationChannel(string host, int port, X509Certificate2 cert)
         {
             Host = host;
             Port = port;
@@ -190,12 +218,7 @@ namespace JdSoft.Apple.Apns.Notifications
             ReconnectDelay = 3000;
             ConnectRetries = 6;
 
-            //Need to load the private key seperately from apple
-            // Fixed by danielgindi@gmail.com :
-            //      The default is UserKeySet, which has caused internal encryption errors,
-            //      Because of lack of permissions on most hosting services.
-            //      So MachineKeySet should be used instead.
-            certificate = new X509Certificate2(p12FileBytes, p12FilePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            certificate = cert;
 
             certificates = new X509CertificateCollection();
             certificates.Add(certificate);
