@@ -395,7 +395,7 @@ namespace JdSoft.Apple.Apns.Feedback
 
 					apnsStream.AuthenticateAsClient(Host,
 						certificates,
-						System.Security.Authentication.SslProtocols.Ssl3,
+						System.Security.Authentication.SslProtocols.Tls,
 						false);
 
 					connected = apnsStream.CanWrite;

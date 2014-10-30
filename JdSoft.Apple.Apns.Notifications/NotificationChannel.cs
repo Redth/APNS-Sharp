@@ -38,8 +38,8 @@ namespace JdSoft.Apple.Apns.Notifications
 	public class NotificationChannel : IDisposable
 	{
 		#region Constants
-		private const string hostSandbox = "gateway.sandbox.push.apple.com";
-		private const string hostProduction = "gateway.push.apple.com";
+        private const string hostSandbox = "tls://gateway.sandbox.push.apple.com";
+		private const string hostProduction = "tls://gateway.push.apple.com";
 		#endregion
 
 		#region Delegates and Events
@@ -495,7 +495,7 @@ namespace JdSoft.Apple.Apns.Notifications
 
 			try
 			{
-				apnsStream.AuthenticateAsClient(this.Host, this.certificates, System.Security.Authentication.SslProtocols.Ssl3, false);
+				apnsStream.AuthenticateAsClient(this.Host, this.certificates, System.Security.Authentication.SslProtocols.Tls, false);
 			}
 			catch (System.Security.Authentication.AuthenticationException ex)
 			{
