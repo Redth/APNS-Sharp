@@ -38,8 +38,8 @@ namespace JdSoft.Apple.Apns.Notifications
 	public class NotificationChannel : IDisposable
 	{
 		#region Constants
-		private const string hostSandbox = "gateway.sandbox.push.apple.com";
-		private const string hostProduction = "gateway.push.apple.com";
+        private const string hostSandbox = "tls://gateway.sandbox.push.apple.com";
+		private const string hostProduction = "tls://gateway.push.apple.com";
 		#endregion
 
 		#region Delegates and Events
@@ -195,7 +195,7 @@ namespace JdSoft.Apple.Apns.Notifications
             //      The default is UserKeySet, which has caused internal encryption errors,
             //      Because of lack of permissions on most hosting services.
             //      So MachineKeySet should be used instead.
-            certificate = new X509Certificate2(p12FileBytes, p12FilePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            certificate = new X509Certificate2(p12FileBytes, p12FilePassword ?? "", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
 
             certificates = new X509CertificateCollection();
             certificates.Add(certificate);
@@ -495,7 +495,7 @@ namespace JdSoft.Apple.Apns.Notifications
 
 			try
 			{
-				apnsStream.AuthenticateAsClient(this.Host, this.certificates, System.Security.Authentication.SslProtocols.Ssl3, false);
+				apnsStream.AuthenticateAsClient(this.Host, this.certificates, System.Security.Authentication.SslProtocols.Tls, false);
 			}
 			catch (System.Security.Authentication.AuthenticationException ex)
 			{
