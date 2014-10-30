@@ -195,7 +195,7 @@ namespace JdSoft.Apple.Apns.Notifications
             //      The default is UserKeySet, which has caused internal encryption errors,
             //      Because of lack of permissions on most hosting services.
             //      So MachineKeySet should be used instead.
-            certificate = new X509Certificate2(p12FileBytes, p12FilePassword, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            certificate = new X509Certificate2(p12FileBytes, p12FilePassword ?? "", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
 
             certificates = new X509CertificateCollection();
             certificates.Add(certificate);
