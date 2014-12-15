@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net;
@@ -87,7 +86,7 @@ namespace JdSoft.Apple.Apns.Feedback
  	    //      The default is UserKeySet, which has caused internal encryption errors,
  	    //      Because of lack of permissions on most hosting services.
  	    //      So MachineKeySet should be used instead.
-            certificate = new X509Certificate2(p12FileBytes, null, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            certificate = new X509Certificate2(p12FileBytes, (string)null, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
             ConnectAttempts = 3;
             ReconnectDelay = 10000;
         }
@@ -160,7 +159,7 @@ namespace JdSoft.Apple.Apns.Feedback
  	    //      The default is UserKeySet, which has caused internal encryption errors,
  	    //      Because of lack of permissions on most hosting services.
  	    //      So MachineKeySet should be used instead.
-            certificate = new X509Certificate2(p12FileBytes, null, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
+            certificate = new X509Certificate2(p12FileBytes, (string)null, X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable);
             ConnectAttempts = 3;
         }
 
@@ -395,7 +394,7 @@ namespace JdSoft.Apple.Apns.Feedback
 
 					apnsStream.AuthenticateAsClient(Host,
 						certificates,
-						System.Security.Authentication.SslProtocols.Ssl3,
+						System.Security.Authentication.SslProtocols.Tls,
 						false);
 
 					connected = apnsStream.CanWrite;
